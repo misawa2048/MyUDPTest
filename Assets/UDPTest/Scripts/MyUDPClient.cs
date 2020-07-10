@@ -25,11 +25,11 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             if (dataArr[0] != this.myIP)
             {
-                Debug.Log("ClientRecv:" + text);
+                Debug.Log("ClientOtherRecv:" + text);
             }
             else
             {
-                Debug.Log("EchoRecv:" + text);
+                Debug.Log("ClientEchoRecv:" + text);
             }
         }
     }

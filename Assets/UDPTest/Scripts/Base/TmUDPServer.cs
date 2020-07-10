@@ -83,12 +83,12 @@ namespace TmUDP
                 {
                     m_host = IS_BROADCAST;
                     m_sendUdp.Connect(IPAddress.Broadcast, m_sendPort);
-                    Debug.Log("UDPBroadcast start."+ m_sendUdp.EnableBroadcast);
+                    Debug.Log("UDPServerBroadcast start."+ m_sendUdp.EnableBroadcast);
                 }
                 else
                 {
                     m_sendUdp.Connect(m_host, m_sendPort);
-                    Debug.Log("UDPSend start."+ m_sendUdp.EnableBroadcast);
+                    Debug.Log("UDPServerSend start."+ m_sendUdp.EnableBroadcast);
                 }
             }
 
@@ -96,7 +96,7 @@ namespace TmUDP
             {
                 m_receiveUdp = new UdpClient(m_receivePort);
                 m_receiveUdp.Client.ReceiveTimeout = 1000;
-                Debug.Log("UDPReceive start.");
+                Debug.Log("UDPServerReceive start.");
             }
 
             if (m_thread == null)
@@ -112,7 +112,7 @@ namespace TmUDP
             {
                 m_thread.Abort();
                 m_thread = null;
-                Debug.Log("serverThreadStopped");
+                Debug.Log("UDPServerThreadStopped");
             }
             if (m_sendUdp != null)
             {
@@ -164,8 +164,9 @@ namespace TmUDP
                 {
                     foreach (string client in m_clientList)
                     {
-                        m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
-                        Debug.Log("SendTo:" + client);
+                        //m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
+                        m_sendUdp.Connect(client, m_sendPort);
+                        m_sendUdp.Send(_data, _data.Length);
                     }
                 }
             }
@@ -183,7 +184,6 @@ namespace TmUDP
                             string text = System.Text.Encoding.UTF8.GetString(data);
                             thManageClient(text);
                             thBroadcast(data);
-                            Debug.Log("ServerRecv:" + text);
                         }
                         catch (SocketException e)
                         {

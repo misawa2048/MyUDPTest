@@ -83,14 +83,14 @@ namespace TmUDP
             {
                 m_sendUdp = new UdpClient();
                 m_sendUdp.Connect(m_host, m_sendPort);
-                Debug.Log("UDPSend start.");
+                Debug.Log("UDPClientSend start.");
             }
 
             if (m_receiveUdp == null)
             {
                 m_receiveUdp = new UdpClient(m_receivePort);
                 m_receiveUdp.Client.ReceiveTimeout = 1000;
-                Debug.Log("UDPReceive start.");
+                Debug.Log("UDPClientReceive start.");
             }
 
             if (m_thread == null)
@@ -113,7 +113,7 @@ namespace TmUDP
             {
                 m_thread.Abort();
                 m_thread = null;
-                Debug.Log("clientThreadStopped");
+                Debug.Log("UDPClientThreadStopped");
             }
             if (m_sendUdp != null)
             {

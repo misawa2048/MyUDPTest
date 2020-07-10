@@ -340,7 +340,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   m_myIP: 
-  m_host: 
+  m_host: 192.168.1.5
   m_sendPort: 7001
   m_receivePort: 7003
   m_clientList: []

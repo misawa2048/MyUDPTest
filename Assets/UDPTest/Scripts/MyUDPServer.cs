@@ -22,5 +22,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
 
     public void OnReceiveData(byte[] _data)
     {
+        string text = System.Text.Encoding.UTF8.GetString(_data);
+        Debug.Log("UDPServerRecv:" + text);
     }
 }
