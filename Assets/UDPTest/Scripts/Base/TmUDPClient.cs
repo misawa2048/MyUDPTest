@@ -19,8 +19,8 @@ namespace TmUDP
         [SerializeField] string m_myIP = "";
         public string myIP { get { return m_myIP; } }
         [SerializeField] string m_host = "localhost";
-        [SerializeField] int m_sendPort = 7001;
-        [SerializeField] int m_receivePort = 7003;
+        [SerializeField] int m_sendPort = 7003;
+        [SerializeField] int m_receivePort = 7001;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
         private Thread m_thread;

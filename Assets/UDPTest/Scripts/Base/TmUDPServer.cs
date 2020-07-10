@@ -12,9 +12,13 @@ namespace TmUDP
 {
     public class TmUDPServer : MonoBehaviour
     {
+        [System.Serializable]
+        public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
+
         readonly string IS_BROADCAST = "isBloadcast";
+        [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] string m_myIP = "";
-        [SerializeField] string m_host = "localhost";
+        [SerializeField] string m_host = ""; // bloadcast
         [SerializeField] int m_sendPort = 7001;
         [SerializeField] int m_receivePort = 7003;
         [SerializeField] List<string> m_clientList = null;
@@ -22,9 +26,11 @@ namespace TmUDP
         private UdpClient m_receiveUdp;
         private Thread m_thread;
         private bool m_isReceiving;
+        private List<byte[]> m_recvList;
+        public List<byte[]> recvList { get { return m_recvList; } }
 
         // Start is called before the first frame update
-        void Start()
+        public virtual void Start()
         {
             m_sendUdp = null;
             m_receiveUdp = null;
@@ -32,11 +38,12 @@ namespace TmUDP
             m_myIP = TmUDPClient.GetIP();
             m_isReceiving = true;
             m_clientList = new List<string>();
+            m_recvList = new List<byte[]>();
             udpStart();
         }
 
         // Update is called once per frame
-        void Update()
+        public virtual void Update()
         {
             if (m_isReceiving)
             {
@@ -46,6 +53,15 @@ namespace TmUDP
             {
                 udpStop();
             }
+
+            lock (m_thread)
+            { // m_thread.lock
+                foreach (byte[] data in m_recvList)
+                {
+                    m_onReceiveEvnts.Invoke(data);
+                }
+                m_recvList.Clear();
+            } // m_thread.resume
         }
 
         void OnApplicationQuit()
@@ -139,6 +155,7 @@ namespace TmUDP
             }
             void thBroadcast(byte[] _data)
             {
+                m_recvList.Add(_data);
                 if (m_sendUdp.EnableBroadcast)
                 {
                     m_sendUdp.Send(_data, _data.Length);
@@ -147,8 +164,8 @@ namespace TmUDP
                 {
                     foreach (string client in m_clientList)
                     {
-                        Debug.Log("SendTo:" + client);
                         m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
+                        Debug.Log("SendTo:" + client);
                     }
                 }
             }
