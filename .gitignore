@@ -10,6 +10,10 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 
+# build outputs
+/Exe/
+/Recordings/
+
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
 
@@ -57,7 +61,3 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
-
-# build outputs
-/[Ee]xe/
-/[Rr]ecordings/
