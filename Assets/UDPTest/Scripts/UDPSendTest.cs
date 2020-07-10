@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace TmUDPTest
 {
@@ -52,6 +53,7 @@ namespace TmUDPTest
             PlayerPrefs.SetString(HOST_KEY_NAME, m_host);
             str += "->" + m_host.ToString();
             Debug.Log("Change host:" + str);
+            SceneChanger.Reload();
         }
 
         public void OnPortEditChange(string _str)
@@ -61,6 +63,7 @@ namespace TmUDPTest
             PlayerPrefs.SetInt(PORT_KEY_NAME, m_port);
             str += "->" + m_port.ToString();
             Debug.Log("Change port:" + str);
+            SceneChanger.Reload();
         }
 
         public void InitPortSettings()

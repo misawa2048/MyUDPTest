@@ -23,5 +23,10 @@ namespace TmUDPTest
         {
             SceneManager.LoadScene(_sceneName, LoadSceneMode.Single);
         }
+
+        static public void Reload()
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 }

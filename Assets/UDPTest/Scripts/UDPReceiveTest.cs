@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 namespace TmUDPTest
 {
@@ -90,6 +91,7 @@ namespace TmUDPTest
             PlayerPrefs.SetInt(PORT_KEY_NAME, m_port);
             str += "->"+m_port.ToString();
             Debug.Log("Change port:" + str);
+            SceneChanger.Reload();
         }
 
         public void OnClearOutputFieldButton()
