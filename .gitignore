@@ -10,9 +10,12 @@
 /[Ll]ogs/
 /[Mm]emoryCaptures/
 
+# mac
+.DS_Store
+
 # build outputs
-/Exe/
-/Recordings/
+/[Ee]xe/
+/[Rr]ecordings/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
