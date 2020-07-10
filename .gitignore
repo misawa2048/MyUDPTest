@@ -58,3 +58,6 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# build outputs
+/[Ee]xe/
+/[Rr]ecordings/
