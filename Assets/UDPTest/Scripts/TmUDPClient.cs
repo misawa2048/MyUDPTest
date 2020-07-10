@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
@@ -10,29 +11,36 @@ namespace TmUDP
 {
     public class TmUDPClient : MonoBehaviour
     {
+        [System.Serializable]
+        public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> {}
+
+        static public readonly string CLIENT_QUIT = "ClientQuit";
+        [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] string m_myIP = "";
+        public string myIP { get { return m_myIP; } }
         [SerializeField] string m_host = "localhost";
-        [SerializeField] int m_sendPort = 7003;
-        [SerializeField] int m_receivePort = 7001;
+        [SerializeField] int m_sendPort = 7001;
+        [SerializeField] int m_receivePort = 7003;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
         private Thread m_thread;
         private bool m_isReceiving;
+        private List<byte[]> m_recvList;
 
         // Start is called before the first frame update
-        void Start()
+        public virtual void Start()
         {
             m_sendUdp = null;
             m_receiveUdp = null;
             m_thread = null;
             m_isReceiving = true;
             m_myIP = GetIP();
+            m_recvList = new List<byte[]>();
             udpStart();
-            StartCoroutine(udpDbgSendCo());
         }
 
         // Update is called once per frame
-        void Update()
+        public virtual void Update()
         {
             if (m_isReceiving)
             {
@@ -42,6 +50,21 @@ namespace TmUDP
             {
                 udpStop();
             }
+
+            lock (m_thread)
+            { // m_thread.lock
+                foreach (byte[] data in m_recvList)
+                {
+                    m_onReceiveEvnts.Invoke(data);
+                }
+                m_recvList.Clear();
+            } // m_thread.resume
+
+        }
+
+        public void SendData(byte[] _data)
+        {
+            m_sendUdp.Send(_data, _data.Length);
         }
 
         void OnApplicationQuit()
@@ -79,10 +102,18 @@ namespace TmUDP
 
         private void udpStop()
         {
+            if (m_sendUdp != null)
+            {
+                string str = m_myIP + "," + CLIENT_QUIT;
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
+                m_sendUdp.Send(data, data.Length);
+            }
+
             if (m_thread != null)
             {
                 m_thread.Abort();
                 m_thread = null;
+                Debug.Log("clientThreadStopped");
             }
             if (m_sendUdp != null)
             {
@@ -94,24 +125,27 @@ namespace TmUDP
                 m_receiveUdp.Close();
                 m_receiveUdp = null;
             }
-            Debug.Log("udpStopped");
         }
 
         private void ThreadMethod()
         {
+            void thUpdate(byte[] _data)
+            {
+                m_recvList.Add(_data);
+            }
+
             while (true)
             {
                 if (m_isReceiving)
                 {
                     if (m_receiveUdp.Available>0)
                     {
-                        Debug.Log("ClientRecv:");
                         try
                         {
                             IPEndPoint remoteEP = null;
                             byte[] data = m_receiveUdp.Receive(ref remoteEP);
                             string text = System.Text.Encoding.UTF8.GetString(data);
-                            Debug.Log("ClientRecv:" + text);
+                            thUpdate(data);
                         }
                         catch (SocketException e)
                         {
@@ -169,18 +203,6 @@ namespace TmUDP
                 }
             }
             return output;
-        }
-
-        IEnumerator udpDbgSendCo()
-        {
-            while (true)
-            {
-                yield return new WaitForSeconds(1.0f);
-                string str = m_myIP+",Pos," + Random.value + ",0.2,:0.3";
-                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
-                m_sendUdp.Send(data, data.Length);
-                Debug.Log(str);
-            }
         }
     }
 }

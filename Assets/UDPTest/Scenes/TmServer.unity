@@ -326,9 +326,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_myIP: 
-  m_host: localhost
+  m_host: 
   m_sendPort: 7003
   m_receivePort: 7001
+  m_clientList: []
 --- !u!4 &1605135898
 Transform:
   m_ObjectHideFlags: 0
@@ -354,7 +355,7 @@ GameObject:
   - component: {fileID: 2105860775}
   - component: {fileID: 2105860773}
   m_Layer: 0
-  m_Name: TmUDPClient
+  m_Name: MyUDPClient
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -369,9 +370,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 2105860772}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1875b5cc5896957498eb323522c7b80d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5ca523865c4059d48b12e74164f518cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_onReceiveEvnts:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 2105860773}
+        m_MethodName: OnReceiveData
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_myIP: 
   m_host: localhost
   m_sendPort: 7001
