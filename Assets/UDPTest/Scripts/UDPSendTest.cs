@@ -12,8 +12,9 @@ namespace TmUDPTest
 {
     public class UDPSendTest : MonoBehaviour
     {
-        readonly string HOST_KEY_NAME = "SendHost";
-        readonly string PORT_KEY_NAME = "SendPort";
+        readonly string HOST_KEY_NAME = "sSendHost";
+        readonly string PORT_KEY_NAME = "iSendPort";
+        readonly string IS_BROADCAST = "isBloadcast";
         [SerializeField] string m_host = "localhost";
         [SerializeField] int m_port = 7001;
         [SerializeField] Text m_hostText = null;
@@ -33,8 +34,16 @@ namespace TmUDPTest
             if (m_udp == null)
             {
                 m_udp = new UdpClient();
-                m_udp.Connect(m_host, m_port);
-                Debug.Log("UDPSend start.");
+                if ((m_host == "") || (m_host == IS_BROADCAST))
+                {
+                    m_udp.Connect(IPAddress.Broadcast, m_port);
+                    Debug.Log("UDPBroadcast start.");
+                }
+                else
+                {
+                    m_udp.Connect(m_host, m_port);
+                    Debug.Log("UDPSend start.");
+                }
                 StartCoroutine(udpSendCo());
             }
 
@@ -49,6 +58,10 @@ namespace TmUDPTest
         public void OnHostEditChange(string _str)
         {
             string str = m_host.ToString();
+            if (m_hostField.text == "")
+            {
+                m_hostField.text = IS_BROADCAST;
+            }
             m_host = m_hostField.text;
             PlayerPrefs.SetString(HOST_KEY_NAME, m_host);
             str += "->" + m_host.ToString();
@@ -77,20 +90,20 @@ namespace TmUDPTest
             }
             else
             {
-                Debug.Log("!HasKey" + PORT_KEY_NAME);
+                Debug.Log("!HasKey:" + PORT_KEY_NAME);
                 int.TryParse(m_portField.text, out m_port);
                 PlayerPrefs.SetInt(PORT_KEY_NAME, m_port);
             }
 
             if (PlayerPrefs.HasKey(HOST_KEY_NAME))
             {
-                Debug.Log("HasKey" + HOST_KEY_NAME);
+                Debug.Log("HasKey:" + HOST_KEY_NAME);
                 m_host = PlayerPrefs.GetString(HOST_KEY_NAME);
                 m_hostField.text = m_host.ToString();
             }
             else
             {
-                Debug.Log("!HasKey" + HOST_KEY_NAME);
+                Debug.Log("!HasKey:" + HOST_KEY_NAME);
                 PlayerPrefs.SetString(HOST_KEY_NAME, m_host);
             }
         }

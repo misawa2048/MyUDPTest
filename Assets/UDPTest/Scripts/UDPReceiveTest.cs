@@ -25,16 +25,6 @@ namespace TmUDPTest
 
         public string[] recvTextArr { get { return m_recvTextArr; } }
 
-        private void buffClear()
-        {
-            m_recvTextArr = new string[RING_SIZE];
-            m_buffPtr = 0;
-            for (int i = 0; i < m_recvTextArr.Length; ++i)
-            {
-                m_recvTextArr[i] = "";
-            }
-        }
-
         void Start()
         {
             if (!m_sendScr.isActiveAndEnabled)
@@ -144,6 +134,16 @@ namespace TmUDPTest
             }
         }
 
+        private void buffClear()
+        {
+            m_recvTextArr = new string[RING_SIZE];
+            m_buffPtr = 0;
+            for (int i = 0; i < m_recvTextArr.Length; ++i)
+            {
+                m_recvTextArr[i] = "";
+            }
+        }
+
         private void ThreadMethod()
         {
             Debug.Log(PORT_KEY_NAME);
@@ -151,17 +151,20 @@ namespace TmUDPTest
             {
                 if (m_isReceiving)
                 {
-                    try
+                    if (m_udp.Available > 0)
                     {
-                        IPEndPoint remoteEP = null;
-                        byte[] data = m_udp.Receive(ref remoteEP);
-                        m_buffPtr = (m_buffPtr + 1) % RING_SIZE;
-                        m_recvTextArr[m_buffPtr] = Encoding.ASCII.GetString(data);
-                        //Debug.Log("Recv:" + m_recvTextArr[m_buffPtr]);
-                    }
-                    catch (SocketException e)
-                    {
-                        Debug.Log(e.ToString());
+                        try
+                        {
+                            IPEndPoint remoteEP = null;
+                            byte[] data = m_udp.Receive(ref remoteEP);
+                            m_buffPtr = (m_buffPtr + 1) % RING_SIZE;
+                            m_recvTextArr[m_buffPtr] = Encoding.ASCII.GetString(data);
+                            //Debug.Log("Recv:" + m_recvTextArr[m_buffPtr]);
+                        }
+                        catch (SocketException e)
+                        {
+                            Debug.Log(e.ToString());
+                        }
                     }
                 }
                 else
