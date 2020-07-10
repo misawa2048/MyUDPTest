@@ -16,6 +16,7 @@
 # build outputs
 /[Ee]xe/
 /[Rr]ecordings/
+/[Ee]xe/*.*/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
