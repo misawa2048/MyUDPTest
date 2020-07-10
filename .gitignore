@@ -13,8 +13,7 @@
 # mac
 .DS_Store
 
-# build outputs
-/[Ee]xe/
+# Recorder outputs
 /[Rr]ecordings/
 
 # Never ignore Asset meta data
