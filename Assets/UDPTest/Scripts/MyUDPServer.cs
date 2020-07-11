@@ -52,6 +52,19 @@ public class MyUDPServer : TmUDP.TmUDPServer
     public void OnReceiveData(byte[] _rawData)
     {
         string text = System.Text.Encoding.UTF8.GetString(_rawData);
+        string[] dataArr = text.Split(',');
+        MyClientInfo info = getInfoByIP(dataArr[0]);
+        if (info != null)
+        {
+            Vector3 pos = Vector3.zero;
+            bool result = tryGetPosFromData(dataArr, out pos);
+            if (result)
+            {
+                info.pos = pos;
+                info.obj.transform.position = info.pos;
+            }
+        }
+
         Debug.Log("--MyUDPServerRecv:" + text);
     }
 
@@ -72,10 +85,28 @@ public class MyUDPServer : TmUDP.TmUDPServer
         MyClientInfo tgt = m_plInfoList.First(v => v.uip == ipStr);
         if (tgt!=null)
         {
+            if (tgt.obj != null)
+                Destroy(tgt.obj);
+
             m_plInfoList.Remove(tgt);
             Debug.Log("--MyUDPServerRemove:" + ipStr.ToString());
         }
     }
+
+    MyClientInfo getInfoByIP(string _ipStr)
+    {
+        MyClientInfo ret = null;
+        foreach(MyClientInfo info in m_plInfoList)
+        {
+            if (info.uip.Equals(_ipStr))
+            {
+                ret = info;
+                break;
+            }
+        }
+        return ret;
+    }
+
 
     MyClientInfo createClient(string[] _dataArr)
     {
