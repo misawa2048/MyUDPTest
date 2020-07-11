@@ -176,7 +176,7 @@ namespace TmUDP
                 // REMOVE
                 if (dataArr.Length > 1)
                 {
-                    if (dataArr[1].StartsWith(TmUDPClient.CLIENT_QUIT))
+                    if (dataArr[1].StartsWith(TmUDPClient.KWD_QUIT))
                     {
                         if (m_clientList.Contains(dataArr[0]))
                         {

@@ -11,10 +11,10 @@ namespace TmUDP
 {
     public class TmUDPClient : MonoBehaviour
     {
-        [System.Serializable]
-        public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> {}
+        static public readonly string KWD_QUIT = "QuitClient";
 
-        static public readonly string CLIENT_QUIT = "ClientQuit";
+        [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> {}
+
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] string m_myIP = "";
         public string myIP { get { return m_myIP; } }
@@ -104,7 +104,7 @@ namespace TmUDP
         {
             if (m_sendUdp != null)
             {
-                string str = m_myIP + "," + CLIENT_QUIT;
+                string str = m_myIP + "," + KWD_QUIT;
                 byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
                 m_sendUdp.Send(data, data.Length);
             }

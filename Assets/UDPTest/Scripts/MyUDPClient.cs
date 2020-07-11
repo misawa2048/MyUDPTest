@@ -39,9 +39,9 @@ public class MyUDPClient : TmUDP.TmUDPClient
         while (true)
         {
             yield return new WaitForSeconds(1.0f);
-            Vector3 val = new Vector3(Random.value, 0f, 0f);
+            Vector3 val = new Vector3(Random.value, 0.1f, Random.value);
             string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(val, 2);
-            string str = this.myIP + ",Pos," + valStr;
+            string str = this.myIP + ","+ MyUDPServer.KWD_POS+"," + valStr;
             byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
             this.SendData(data);
             Debug.Log(str);
