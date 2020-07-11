@@ -140,6 +140,7 @@ namespace TmUDP
 
         private void udpStop()
         {
+            m_isReceiving = false;
             if (m_thread != null)
             {
                 m_thread.Abort();
