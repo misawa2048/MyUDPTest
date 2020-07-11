@@ -21,8 +21,8 @@ namespace TmUDP
         [SerializeField] int m_sendPort = 7001;
         [SerializeField] int m_receivePort = 7003;
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
-        [SerializeField] NumChangeEvent m_onAddIPEvnts = new NumChangeEvent();
-        [SerializeField] NumChangeEvent m_onRemoveIPEvnts = new NumChangeEvent();
+        [SerializeField] NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
+        [SerializeField] NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
         [SerializeField, Tooltip("client list from base class")] List<string> m_clientList = null;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
@@ -64,29 +64,31 @@ namespace TmUDP
 
             lock (m_thread)
             { // m_thread.lock
+                foreach (string dataStr in m_thAaddedClientList)
+                {
+                    string[] dataArr = dataStr.Split(',');
+                    string ipStr = dataArr[0];
+                    if (!m_clientList.Contains(ipStr))
+                    {
+                        m_onAddClientEvnts.Invoke(dataArr);
+                        m_clientList.Add(ipStr);
+                    }
+                }
+                m_thAaddedClientList.Clear();
+
                 foreach (byte[] data in m_thRecvList)
                 {
                     m_onReceiveEvnts.Invoke(data);
                 }
                 m_thRecvList.Clear();
 
-                foreach (string ipStr in m_thAaddedClientList)
+                foreach (string dataStr in m_thRemovedClientList)
                 {
-                    if (!m_clientList.Contains(ipStr))
-                    {
-                        string[] ipStrArr = new string[1] { ipStr };
-                        m_onAddIPEvnts.Invoke(ipStrArr);
-                        m_clientList.Add(ipStr);
-                    }
-                }
-                m_thAaddedClientList.Clear();
-
-                foreach (string ipStr in m_thRemovedClientList)
-                {
+                    string[] dataArr = dataStr.Split(',');
+                    string ipStr = dataArr[0];
                     if (m_clientList.Contains(ipStr))
                     {
-                        string[] ipStrArr = new string[1] { ipStr };
-                        m_onRemoveIPEvnts.Invoke(ipStrArr);
+                        m_onRemoveClientEvnts.Invoke(dataArr);
                         m_clientList.Remove(ipStr);
                     }
                 }
@@ -167,7 +169,7 @@ namespace TmUDP
                 {
                     if (!m_clientList.Contains(dataArr[0]))
                     {
-                        m_thAaddedClientList.Add(dataArr[0]);
+                        m_thAaddedClientList.Add(_text);
                     }
                 }
 
@@ -178,7 +180,7 @@ namespace TmUDP
                     {
                         if (m_clientList.Contains(dataArr[0]))
                         {
-                            m_thRemovedClientList.Add(dataArr[0]);
+                            m_thRemovedClientList.Add(_text);
                         }
                     }
                 }
