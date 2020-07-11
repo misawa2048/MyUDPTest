@@ -204,5 +204,19 @@ namespace TmUDP
             }
             return output;
         }
+
+        public static string Vector3ToFormatedStr(Vector3 _vec, int _numDecimalPoint)
+        {
+            string fmt = "F" + _numDecimalPoint.ToString();
+            string str = _vec.x.ToString(fmt) + ","+_vec.y.ToString(fmt)+","+_vec.z.ToString(fmt);
+            return str;
+        }
+        public static string QuaternionToFormatedStr(Quaternion _rot, int _numDecimalPoint)
+        {
+            string fmt = "F" + _numDecimalPoint.ToString();
+            string str = _rot.x.ToString(fmt) + "," +_rot.y.ToString(fmt) + ","
+                +_rot.z.ToString(fmt) + "," +_rot.w.ToString(fmt);
+            return str;
+        }
     }
 }

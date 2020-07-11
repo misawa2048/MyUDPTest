@@ -348,7 +348,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1605135897}
         m_MethodName: OnAddIP
-        m_Mode: 5
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -362,7 +362,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1605135897}
         m_MethodName: OnRemoveIP
-        m_Mode: 5
+        m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
@@ -372,6 +372,7 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   m_clientList: []
+  m_plInfoList: []
 --- !u!4 &1605135898
 Transform:
   m_ObjectHideFlags: 0
