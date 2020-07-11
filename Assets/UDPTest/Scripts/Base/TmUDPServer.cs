@@ -12,22 +12,26 @@ namespace TmUDP
 {
     public class TmUDPServer : MonoBehaviour
     {
-        [System.Serializable]
-        public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
+        [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
+        [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
 
         readonly string IS_BROADCAST = "isBloadcast";
-        [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] string m_myIP = "";
         [SerializeField] string m_host = ""; // bloadcast
         [SerializeField] int m_sendPort = 7001;
         [SerializeField] int m_receivePort = 7003;
+        [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
+        [SerializeField] NumChangeEvent m_onAddIPEvnts = new NumChangeEvent();
+        [SerializeField] NumChangeEvent m_onRemoveIPEvnts = new NumChangeEvent();
         [SerializeField] List<string> m_clientList = null;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
         private Thread m_thread;
         private bool m_isReceiving;
-        private List<byte[]> m_recvList;
-        public List<byte[]> recvList { get { return m_recvList; } }
+        private List<byte[]> m_thRecvList;
+        private List<string> m_thAaddedClientList = null;
+        private List<string> m_thRemovedClientList = null;
+        //public List<byte[]> clientList { get { return m_clientList; } }
 
         // Start is called before the first frame update
         public virtual void Start()
@@ -38,7 +42,11 @@ namespace TmUDP
             m_myIP = TmUDPClient.GetIP();
             m_isReceiving = true;
             m_clientList = new List<string>();
-            m_recvList = new List<byte[]>();
+            //--lock
+            m_thRecvList = new List<byte[]>();
+            m_thAaddedClientList = new List<string>();
+            m_thRemovedClientList = new List<string>();
+            //--!lock
             udpStart();
         }
 
@@ -56,11 +64,33 @@ namespace TmUDP
 
             lock (m_thread)
             { // m_thread.lock
-                foreach (byte[] data in m_recvList)
+                foreach (byte[] data in m_thRecvList)
                 {
                     m_onReceiveEvnts.Invoke(data);
                 }
-                m_recvList.Clear();
+                m_thRecvList.Clear();
+
+                foreach (string ipStr in m_thAaddedClientList)
+                {
+                    if (!m_clientList.Contains(ipStr))
+                    {
+                        string[] ipStrArr = new string[1] { ipStr };
+                        m_onAddIPEvnts.Invoke(ipStrArr);
+                        m_clientList.Add(ipStr);
+                    }
+                }
+                m_thAaddedClientList.Clear();
+
+                foreach (string ipStr in m_thRemovedClientList)
+                {
+                    if (m_clientList.Contains(ipStr))
+                    {
+                        string[] ipStrArr = new string[1] { ipStr };
+                        m_onRemoveIPEvnts.Invoke(ipStrArr);
+                        m_clientList.Remove(ipStr);
+                    }
+                }
+                m_thRemovedClientList.Clear();
             } // m_thread.resume
         }
 
@@ -137,7 +167,7 @@ namespace TmUDP
                 {
                     if (!m_clientList.Contains(dataArr[0]))
                     {
-                        m_clientList.Add(dataArr[0]);
+                        m_thAaddedClientList.Add(dataArr[0]);
                     }
                 }
 
@@ -148,14 +178,14 @@ namespace TmUDP
                     {
                         if (m_clientList.Contains(dataArr[0]))
                         {
-                            m_clientList.Remove(dataArr[0]);
+                            m_thRemovedClientList.Add(dataArr[0]);
                         }
                     }
                 }
             }
             void thBroadcast(byte[] _data)
             {
-                m_recvList.Add(_data);
+                m_thRecvList.Add(_data);
                 if (m_sendUdp.EnableBroadcast)
                 {
                     m_sendUdp.Send(_data, _data.Length);

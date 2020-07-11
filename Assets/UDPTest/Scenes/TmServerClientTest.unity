@@ -325,6 +325,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74b9482989c589a48957f1d8db83df56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_myIP: 
+  m_host: 192.168.1.5
+  m_sendPort: 7001
+  m_receivePort: 7003
   m_onReceiveEvnts:
     m_PersistentCalls:
       m_Calls:
@@ -339,10 +343,34 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  m_myIP: 
-  m_host: 192.168.1.5
-  m_sendPort: 7001
-  m_receivePort: 7003
+  m_onAddIPEvnts:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1605135897}
+        m_MethodName: OnAddIP
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  m_onRemoveIPEvnts:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1605135897}
+        m_MethodName: OnRemoveIP
+        m_Mode: 5
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
   m_clientList: []
 --- !u!4 &1605135898
 Transform:
