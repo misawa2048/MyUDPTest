@@ -52,8 +52,10 @@ public class MyUDPServer : TmUDP.TmUDPServer
     }
     public void OnRemoveIP(string[] _ip)
     {
-        if (m_plInfoList.Any(v => v.uip == _ip[0]))
+        MyPlInfo tgt = m_plInfoList.First(v => v.uip == _ip[0]);
+        if (tgt!=null)
         {
+            m_plInfoList.Remove(tgt);
             Debug.Log("--MyUDPServerRemove:" + _ip[0].ToString());
         }
     }
