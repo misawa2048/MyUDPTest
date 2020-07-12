@@ -464,6 +464,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  m_plInfoList: []
+  m_clientMarkerPrefab: {fileID: 3436943323470778168, guid: a053f343128923c44a02c75d7ef8d9aa,
+    type: 3}
 --- !u!4 &2105860775
 Transform:
   m_ObjectHideFlags: 0
