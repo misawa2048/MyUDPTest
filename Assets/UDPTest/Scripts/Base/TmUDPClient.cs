@@ -24,7 +24,7 @@ namespace TmUDP
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
         [SerializeField] NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
-        //[SerializeField, Tooltip("client list from base class")]
+        //[SerializeField, ReadOnly, Tooltip("client list from base class")]
         List<string> m_clientList = null;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
@@ -42,6 +42,7 @@ namespace TmUDP
             m_thread = null;
             m_isReceiving = true;
             m_myIP = GetIP();
+            m_clientList = new List<string>();
             //--lock
             m_thRecvList = new List<byte[]>();
             m_thAaddedClientList = new List<string>();

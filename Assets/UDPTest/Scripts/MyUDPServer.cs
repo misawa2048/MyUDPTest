@@ -30,8 +30,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
         public LinqSch(int _idx=0, string _dat=""){ index = _idx; data = _dat; }
     }
 
-    [SerializeField] List<MyClientInfo> m_plInfoList = null;
-    [SerializeField] GameObject m_clientMarkerPrefab = null;
+    [SerializeField,ReadOnly] List<MyClientInfo> m_plInfoList = null;
+    [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
 
     // Start is called before the first frame update
     public override void Start()
@@ -53,11 +53,11 @@ public class MyUDPServer : TmUDP.TmUDPServer
     {
         string text = System.Text.Encoding.UTF8.GetString(_rawData);
         string[] dataArr = text.Split(',');
-        MyClientInfo info = getInfoByIP(dataArr[0]);
+        MyClientInfo info = GetInfoByIP(dataArr[0], m_plInfoList);
         if (info != null)
         {
             Vector3 pos = Vector3.zero;
-            bool result = tryGetPosFromData(dataArr, out pos);
+            bool result = TryGetPosFromData(dataArr, out pos);
             if (result)
             {
                 info.pos = pos;
@@ -73,7 +73,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         string ipStr = _dataArr[0];
         if (!m_plInfoList.Any(v => v.uip == ipStr))
         {
-            MyClientInfo info = createClient(_dataArr);
+            MyClientInfo info = CreateClientMarker(_dataArr,m_clientMarkerPrefab);
             m_plInfoList.Add(info);
             Debug.Log("--MyUDPServerAdd:" + ipStr.ToString());
         }
@@ -93,10 +93,10 @@ public class MyUDPServer : TmUDP.TmUDPServer
         }
     }
 
-    MyClientInfo getInfoByIP(string _ipStr)
+    static public MyClientInfo GetInfoByIP(string _ipStr, List<MyClientInfo> _plInfoList)
     {
         MyClientInfo ret = null;
-        foreach(MyClientInfo info in m_plInfoList)
+        foreach(MyClientInfo info in _plInfoList)
         {
             if (info.uip.Equals(_ipStr))
             {
@@ -108,16 +108,16 @@ public class MyUDPServer : TmUDP.TmUDPServer
     }
 
 
-    MyClientInfo createClient(string[] _dataArr)
+    static public MyClientInfo CreateClientMarker(string[] _dataArr,GameObject _prefab)
     {
         Vector3 pos=Vector3.zero;
-        bool result = tryGetPosFromData(_dataArr, out pos);
-        GameObject go = Instantiate(m_clientMarkerPrefab, pos, Quaternion.identity);
+        bool result = TryGetPosFromData(_dataArr, out pos);
+        GameObject go = Instantiate(_prefab, pos, Quaternion.identity);
         MyClientInfo info = new MyClientInfo(_dataArr[0], go, pos);
         return info;
     }
 
-    bool tryGetPosFromData(string[] _dataArr, out Vector3 _pos)
+    static public bool TryGetPosFromData(string[] _dataArr, out Vector3 _pos)
     {
         bool ret = false;
         _pos = Vector3.zero;
@@ -139,7 +139,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    bool tryGetQuatFromData(string[] _dataArr, out Quaternion _rot)
+    static public bool TryGetQuatFromData(string[] _dataArr, out Quaternion _rot)
     {
         bool ret = false;
         _rot = Quaternion.identity;
