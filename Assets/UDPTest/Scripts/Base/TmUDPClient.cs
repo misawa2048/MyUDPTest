@@ -41,8 +41,8 @@ namespace TmUDP
             m_sendUdp = null;
             m_receiveUdp = null;
             m_thread = null;
-            m_isReceiving = true;
             m_myIP = GetIP();
+            m_isReceiving = true;
             m_clientList = new List<string>();
             //--lock
             m_thRecvList = new List<byte[]>();
@@ -97,11 +97,6 @@ namespace TmUDP
                 m_thRemovedClientList.Clear();
             } // m_thread.resume
 
-        }
-
-        internal void SendData(byte[] _data)
-        {
-            m_sendUdp.Send(_data, _data.Length);
         }
 
         void OnApplicationQuit()
@@ -222,9 +217,14 @@ namespace TmUDP
             }
         }
 
+        internal void SendData(byte[] _data)
+        {
+            m_sendUdp.Send(_data, _data.Length);
+        }
+
         // https://stackoverflow.com/questions/51975799/how-to-get-ip-address-of-device-in-unity-2018
         public enum ADDRESSFAM { IPv4, IPv6 }
-        public static string GetIP(ADDRESSFAM Addfam = ADDRESSFAM.IPv4)
+        public static string GetIP(ADDRESSFAM Addfam)
         {
             //Return null if ADDRESSFAM is Ipv6 but Os does not support it
             if (Addfam == ADDRESSFAM.IPv6 && !Socket.OSSupportsIPv6)
@@ -267,6 +267,31 @@ namespace TmUDP
             }
             return output;
         }
+
+        public static string GetLocalIP()
+        {
+            string ret = "localhost";
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (IPAddress ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    ret = ip.ToString();
+                    break;
+                }
+            }
+            return ret;
+        }
+
+        public static string GetIP()
+        {
+#if UNITY_ANDROID || UNITY_IPHONE
+            return GetLocalIP();
+#else
+            return GetLocalIP(ADDRESSFAM.IPv4);
+#endif
+        }
+
 
         public static string Vector3ToFormatedStr(Vector3 _vec, int _numDecimalPoint)
         {
