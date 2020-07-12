@@ -174,12 +174,12 @@ GameObject:
   - component: {fileID: 153045850}
   - component: {fileID: 153045849}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: FloorCube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &153045849
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -724,7 +724,7 @@ PrefabInstance:
     - target: {fileID: 3436943323470778168, guid: a053f343128923c44a02c75d7ef8d9aa,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6122758395975274109, guid: a053f343128923c44a02c75d7ef8d9aa,
         type: 3}
