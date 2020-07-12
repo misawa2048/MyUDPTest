@@ -5,6 +5,8 @@ using UnityEngine;
 public class PlayerCtrlWithButton : MonoBehaviour
 {
     [SerializeField] Transform m_targetTr = null;
+    [SerializeField] Transform m_cameraTargetTr = null;
+    [SerializeField] Camera m_targetCamera = null;
     [SerializeField,Tooltip("L/R,Jump,and F/W")] Vector3 m_moveSped = new Vector3(1f, 1f, 1f);
     Rigidbody m_rigidbody = null;
     Vector3 m_speed;
@@ -13,6 +15,10 @@ public class PlayerCtrlWithButton : MonoBehaviour
     {
         m_rigidbody = m_targetTr.GetComponent<Rigidbody>();
         m_speed = Vector3.zero;
+        if (m_targetCamera == null)
+        {
+            m_targetCamera = Camera.main;
+        }
     }
 
     // Update is called once per frame
@@ -30,6 +36,9 @@ public class PlayerCtrlWithButton : MonoBehaviour
             m_speed.y = 0f;
             m_rigidbody.AddForce(Vector3.up* m_moveSped.y,ForceMode.Impulse);
         }
+
+        m_targetCamera.transform.position = Vector3.Lerp(m_targetCamera.transform.position, m_cameraTargetTr.position, 0.1f);
+        m_targetCamera.transform.rotation = Quaternion.Lerp(m_targetCamera.transform.rotation, m_cameraTargetTr.rotation, 0.5f);
     }
 
     public void OnForwardButtonDown()
