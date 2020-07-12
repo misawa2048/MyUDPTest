@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/UDPTest/Scenes/TmServerClientTest.unity
-    guid: 1d95cd4fc1d197a4e9bda5e589da62b2
+    path: Assets/UDPTest/Scenes/TmServerClientPlayerTest.unity
+    guid: 9b30d25a4e9f4e447aa925fc4f273739
   - enabled: 1
     path: Assets/UDPTest/Scenes/Receive.unity
     guid: 382f2209622fc0b42bb513bff097f9c9
