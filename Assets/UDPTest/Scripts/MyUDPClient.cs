@@ -25,13 +25,25 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             if (dataArr[0] != this.myIP)
             {
-                Debug.Log("ClientOtherRecv:" + text);
+                Debug.Log("----MyUDPClientOtherRecv:" + text);
             }
             else
             {
-                Debug.Log("ClientEchoRecv:" + text);
+                Debug.Log("----MyUDPClientEchoRecv:" + text);
             }
         }
+    }
+
+    public void OnAddClient(string[] _dataArr)
+    {
+        string ipStr = _dataArr[0];
+        Debug.Log("----MyUDPClientAdd:" + ipStr.ToString());
+    }
+
+    public void OnRemoveClient(string[] _dataArr)
+    {
+        string ipStr = _dataArr[0];
+        Debug.Log("----MyUDPClientRemove:" + ipStr.ToString());
     }
 
     IEnumerator udpDbgSendCo()

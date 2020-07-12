@@ -28,7 +28,7 @@ namespace TmUDP
         private UdpClient m_receiveUdp;
         private Thread m_thread;
         private bool m_isReceiving;
-        private List<byte[]> m_thRecvList;
+        private List<byte[]> m_thRecvList=null;
         private List<string> m_thAaddedClientList = null;
         private List<string> m_thRemovedClientList = null;
         //public List<byte[]> clientList { get { return m_clientList; } }
