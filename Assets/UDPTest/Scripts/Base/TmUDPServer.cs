@@ -16,10 +16,10 @@ namespace TmUDP
         [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
 
         readonly string IS_BROADCAST = "isBloadcast";
-        [SerializeField] string m_myIP = "";
-        [SerializeField] string m_host = ""; // bloadcast
-        [SerializeField] int m_sendPort = 7001;
-        [SerializeField] int m_receivePort = 7003;
+        [SerializeField, ReadOnly] string m_myIP = "";
+        [SerializeField, ReadOnlyWhenPlaying] string m_host = ""; // bloadcast
+        [SerializeField, ReadOnlyWhenPlaying] int m_sendPort = 7001;
+        [SerializeField, ReadOnlyWhenPlaying] int m_receivePort = 7003;
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
         [SerializeField] NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();

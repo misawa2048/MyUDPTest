@@ -418,6 +418,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ca523865c4059d48b12e74164f518cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_myIP: 
+  m_host: 192.168.1.5
+  m_sendPort: 7003
+  m_receivePort: 7001
   m_onReceiveEvnts:
     m_PersistentCalls:
       m_Calls:
@@ -460,11 +464,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  m_clientList: []
-  m_myIP: 
-  m_host: 192.168.1.5
-  m_sendPort: 7003
-  m_receivePort: 7001
 --- !u!4 &2105860775
 Transform:
   m_ObjectHideFlags: 0

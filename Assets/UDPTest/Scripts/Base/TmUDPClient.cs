@@ -16,15 +16,16 @@ namespace TmUDP
         [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
         [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
 
+        [SerializeField, ReadOnly] string m_myIP = "";
+        public string myIP { get { return m_myIP; } }
+        [SerializeField, ReadOnlyWhenPlaying] string m_host = "localhost";
+        [SerializeField,ReadOnlyWhenPlaying] int m_sendPort = 7003;
+        [SerializeField, ReadOnlyWhenPlaying] int m_receivePort = 7001;
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
         [SerializeField] NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
-        [SerializeField, Tooltip("client list from base class")] List<string> m_clientList = null;
-        [SerializeField] string m_myIP = "";
-        public string myIP { get { return m_myIP; } }
-        [SerializeField] string m_host = "localhost";
-        [SerializeField] int m_sendPort = 7003;
-        [SerializeField] int m_receivePort = 7001;
+        //[SerializeField, Tooltip("client list from base class")]
+        List<string> m_clientList = null;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
         private Thread m_thread;
