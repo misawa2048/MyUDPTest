@@ -17,7 +17,9 @@ namespace TmUDP
 
         readonly string IS_BROADCAST = "isBloadcast";
         [SerializeField, ReadOnly] string m_myIP = "";
+        public string myIP { get { return m_myIP; } }
         [SerializeField, ReadOnlyWhenPlaying] string m_host = ""; // bloadcast
+        public string host { get { return m_host; } }
         [SerializeField, ReadOnlyWhenPlaying] int m_sendPort = 7001;
         [SerializeField, ReadOnlyWhenPlaying] int m_receivePort = 7003;
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();

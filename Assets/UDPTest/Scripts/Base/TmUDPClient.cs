@@ -19,6 +19,7 @@ namespace TmUDP
         [SerializeField, ReadOnly] string m_myIP = "";
         public string myIP { get { return m_myIP; } }
         [SerializeField, ReadOnlyWhenPlaying] string m_host = "localhost";
+        public string host { get { return m_host; } }
         [SerializeField,ReadOnlyWhenPlaying] int m_sendPort = 7003;
         [SerializeField, ReadOnlyWhenPlaying] int m_receivePort = 7001;
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();

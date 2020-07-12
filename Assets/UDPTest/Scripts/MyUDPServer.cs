@@ -170,4 +170,22 @@ public class MyUDPServer : TmUDP.TmUDPServer
         }
         return ret;
     }
+
+    // for debug
+    void OnGUI()
+    {
+        GUIStyle customGuiStyle = new GUIStyle();
+        customGuiStyle.fontSize = 32;
+        customGuiStyle.alignment = TextAnchor.UpperRight;
+        GUILayout.BeginArea(new Rect(Screen.width - 310, 0, 300, Screen.height));
+        GUILayout.BeginVertical();
+        GUILayout.TextArea("host:"+this.host, customGuiStyle);
+        GUILayout.TextArea("myIP:"+this.myIP, customGuiStyle);
+        foreach (MyUDPServer.MyClientInfo info in m_plInfoList)
+        {
+            GUILayout.TextArea(info.uip, customGuiStyle);
+        }
+        GUILayout.EndVertical();
+        GUILayout.EndArea();
+    }
 }

@@ -34,7 +34,7 @@ public class PlayerCtrlWithButton : MonoBehaviour
         if (m_speed.y > 0f)
         {
             m_speed.y = 0f;
-            m_rigidbody.AddForce(Vector3.up* m_moveSped.y,ForceMode.Impulse);
+            m_rigidbody.AddForce(Vector3.up* m_moveSped.y,ForceMode.VelocityChange);
         }
 
         m_targetCamera.transform.position = Vector3.Lerp(m_targetCamera.transform.position, m_cameraTargetTr.position, 0.1f);

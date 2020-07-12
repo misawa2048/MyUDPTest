@@ -79,11 +79,18 @@ public class MyUDPClient : TmUDP.TmUDPClient
                 if (info != null)
                 {
                     Vector3 pos = Vector3.zero;
-                    bool result = MyUDPServer.TryGetPosFromData(dataArr, out pos);
-                    if (result)
+                    bool posResult = MyUDPServer.TryGetPosFromData(dataArr, out pos);
+                    if (posResult)
                     {
                         info.pos = pos;
                         info.obj.transform.position = info.pos;
+                    }
+
+                    float angY=0f;
+                    bool angResult = MyUDPServer.TryGetAngleYFromData(dataArr, out angY);
+                    if (angResult)
+                    {
+                        info.obj.transform.rotation = Quaternion.AngleAxis(angY,Vector3.up);
                     }
                 }
                 Debug.Log("----MyUDPClientOtherRecv:" + text);
@@ -141,5 +148,23 @@ public class MyUDPClient : TmUDP.TmUDPClient
             SetPosition(val);
             SetAngleY(0f);
         }
+    }
+
+    // for debug
+    void OnGUI()
+    {
+        GUIStyle customGuiStyle = new GUIStyle();
+        customGuiStyle.fontSize = 32;
+        customGuiStyle.alignment = TextAnchor.UpperRight;
+        GUILayout.BeginArea(new Rect(Screen.width-310, 0, 300, Screen.height));
+        GUILayout.BeginVertical();
+        GUILayout.TextArea("host:" + this.host, customGuiStyle);
+        GUILayout.TextArea("myIP:" + this.myIP, customGuiStyle);
+        foreach (MyUDPServer.MyClientInfo info in m_plInfoList)
+        {
+            GUILayout.TextArea(info.uip, customGuiStyle);
+        }
+        GUILayout.EndVertical();
+        GUILayout.EndArea();
     }
 }
