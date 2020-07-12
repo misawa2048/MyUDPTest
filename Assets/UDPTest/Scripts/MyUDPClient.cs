@@ -5,21 +5,65 @@ using UnityEngine;
 
 public class MyUDPClient : TmUDP.TmUDPClient
 {
-    [SerializeField,ReadOnly] List<MyUDPServer.MyClientInfo> m_plInfoList = null;
+    [System.Serializable]
+    public class MyClientSettings
+    {
+        [Tooltip("Minimum distance to send message")]  public float minDist = 0.5f;
+        [Tooltip("Minimum rotationY to send message")] public float minAngY = 5f;
+        [Tooltip("Minimum time to send message again")] public float reloadTime = 0.2f;
+    }
+    [SerializeField,ReadOnly,Tooltip("clients except me")] List<MyUDPServer.MyClientInfo> m_plInfoList = null;
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
+    [SerializeField, ReadOnlyWhenPlaying] MyClientSettings m_settings = new MyClientSettings();
+    Vector3 m_previousPos;
+    float m_previousAngY;
+    float m_reloadTimer;
+
+    public void SetPosition(Vector3 _pos) { transform.position = _pos; }
+    public void SetAngleY(float _angY) { transform.rotation = Quaternion.AngleAxis(_angY,Vector3.up); }
 
     // Start is called before the first frame update
     public override void Start()
     {
         base.Start();
         m_plInfoList = new List<MyUDPServer.MyClientInfo>();
-        StartCoroutine(udpDbgSendCo());
+        m_previousPos = transform.position;
+        m_previousAngY = transform.rotation.eulerAngles.y;
+        m_reloadTimer = 0f;
+        //StartCoroutine(udpDbgSendCo());
     }
 
     // Update is called once per frame
     public override void Update()
     {
         base.Update();
+        m_reloadTimer = Mathf.Max(m_reloadTimer - Time.deltaTime, 0f);
+        if (m_reloadTimer <= 0f)
+        {
+            float dist = (transform.position - m_previousPos).magnitude;
+            if (dist >= m_settings.minDist)
+            {
+                m_previousPos = transform.position;
+                string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(transform.position, 2);
+                string str = this.myIP + "," + MyUDPServer.KWD_POS + "," + valStr;
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
+                this.SendData(data);
+                m_reloadTimer = m_settings.reloadTime;
+                Debug.Log(str);
+            }
+            float angY = transform.rotation.eulerAngles.y;
+            float diffAngY = getDiffAngleY(m_previousAngY, angY);
+            if (diffAngY >= m_settings.minAngY)
+            {
+                m_previousAngY = angY;
+                string valStr = TmUDP.TmUDPClient.AngleYToFormatedStr(angY, 2);
+                string str = this.myIP + "," + MyUDPServer.KWD_RORY + "," + valStr;
+                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
+                this.SendData(data);
+                m_reloadTimer = m_settings.reloadTime;
+                Debug.Log(str);
+            }
+        }
     }
 
     public void OnReceiveData(byte[] _data)
@@ -83,17 +127,19 @@ public class MyUDPClient : TmUDP.TmUDPClient
         }
     }
 
+    float getDiffAngleY(float _angY0, float _angY1) {
+        float diff = Mathf.Repeat((_angY1-_angY0) + 180f, 360f) - 180f;
+        return Mathf.Abs(diff);
+    }
+
     IEnumerator udpDbgSendCo()
     {
         while (true)
         {
             yield return new WaitForSeconds(1.0f);
             Vector3 val = new Vector3(Random.value, 0.1f, Random.value);
-            string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(val, 2);
-            string str = this.myIP + ","+ MyUDPServer.KWD_POS+"," + valStr;
-            byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
-            this.SendData(data);
-            Debug.Log(str);
+            SetPosition(val);
+            SetAngleY(0f);
         }
     }
 }

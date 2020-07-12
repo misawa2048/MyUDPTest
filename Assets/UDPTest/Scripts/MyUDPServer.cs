@@ -139,10 +139,10 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    static public bool TryGetQuatFromData(string[] _dataArr, out Quaternion _rot)
+    static public bool TryGetAngleYFromData(string[] _dataArr, out float _angY)
     {
         bool ret = false;
-        _rot = Quaternion.identity;
+        _angY = 0f;
         int index = 0;
         try
         {
@@ -152,11 +152,21 @@ public class MyUDPServer : TmUDP.TmUDPServer
 
         if ((index > 0) && (_dataArr.Length > index + 1))
         { // rotY
-            float rotY = 0f;
             ret = true;
-            float.TryParse(_dataArr[index + 1], out rotY);
-            _rot = Quaternion.AngleAxis(rotY, Vector3.up);
+            float.TryParse(_dataArr[index + 1], out _angY);
             Debug.Log("RotY=" + _dataArr[index + 1]);
+        }
+        return ret;
+    }
+
+    static public bool TryGetQuatFromData(string[] _dataArr, out Quaternion _rot)
+    {
+        bool ret = false;
+        float angY = 0f;
+        _rot = Quaternion.identity;
+        if (TryGetAngleYFromData(_dataArr,out angY)){
+            ret = true;
+            _rot = Quaternion.AngleAxis(angY, Vector3.up);
         }
         return ret;
     }

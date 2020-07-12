@@ -273,6 +273,12 @@ namespace TmUDP
             string str = _vec.x.ToString(fmt) + ","+_vec.y.ToString(fmt)+","+_vec.z.ToString(fmt);
             return str;
         }
+        public static string AngleYToFormatedStr(float _angY, int _numDecimalPoint)
+        {
+            string fmt = "F" + _numDecimalPoint.ToString();
+            string str = _angY.ToString(fmt);
+            return str;
+        }
         public static string QuaternionToFormatedStr(Quaternion _rot, int _numDecimalPoint)
         {
             string fmt = "F" + _numDecimalPoint.ToString();
