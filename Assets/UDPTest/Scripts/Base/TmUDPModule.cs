@@ -101,14 +101,26 @@ namespace TmUDP
             } // m_thread.resume
         }
 
-        void OnApplicationQuit()
+        internal virtual void OnApplicationQuit()
         {
             udpStop();
         }
 
-        private void OnDestroy()
+        internal virtual void OnDestroy()
         {
             udpStop();
+        }
+
+        internal virtual void OnApplicationPause(bool isPpause)
+        {
+#if UNITY_ANDROID || UNITY_IPHONE
+            if (isPpause)
+            {
+                udpStop();
+                Application.runInBackground = false;
+                Application.Quit();
+            }
+#endif
         }
 
         private void udpStart()
