@@ -30,7 +30,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
         m_previousPos = transform.position;
         m_previousAngY = transform.rotation.eulerAngles.y;
         m_reloadTimer = 0f;
-        //StartCoroutine(udpDbgSendCo());
     }
 
     // Update is called once per frame
@@ -52,7 +51,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
                 Debug.Log(str);
             }
             float angY = transform.rotation.eulerAngles.y;
-            float diffAngY = getDiffAngleY(m_previousAngY, angY);
+            float diffAngY = GetDiffAngleY(m_previousAngY, angY);
             if (diffAngY >= m_settings.minAngY)
             {
                 m_previousAngY = angY;
@@ -109,12 +108,18 @@ public class MyUDPClient : TmUDP.TmUDPClient
         if (ipStr == this.myIP)
             return;
 
+        if (MyUDPServer.OnAddClientSub(_dataArr, m_plInfoList, m_clientMarkerPrefab))
+        {
+            Debug.Log("----MyUDPClientAdd:" + _dataArr[0].ToString());
+        }
+        /*
         if (!m_plInfoList.Any(v => v.uip == ipStr))
         {
             MyUDPServer.MyClientInfo info = MyUDPServer.CreateClientMarker(_dataArr, m_clientMarkerPrefab);
             m_plInfoList.Add(info);
             Debug.Log("----MyUDPClientAdd:" + ipStr.ToString());
         }
+        */
     }
 
     public void OnRemoveClient(string[] _dataArr)
@@ -123,6 +128,11 @@ public class MyUDPClient : TmUDP.TmUDPClient
         if (ipStr == this.myIP)
             return;
 
+        if (MyUDPServer.OnRemoveClientSub(_dataArr, m_plInfoList))
+        {
+            Debug.Log("----MyUDPClientRemove:" + _dataArr[0].ToString());
+        }
+        /*
         MyUDPServer.MyClientInfo tgt = m_plInfoList.First(v => v.uip == ipStr);
         if (tgt != null)
         {
@@ -132,39 +142,17 @@ public class MyUDPClient : TmUDP.TmUDPClient
             m_plInfoList.Remove(tgt);
             Debug.Log("----MyUDPClientRemove:" + ipStr.ToString());
         }
-    }
-
-    float getDiffAngleY(float _angY0, float _angY1) {
-        float diff = Mathf.Repeat((_angY1-_angY0) + 180f, 360f) - 180f;
-        return Mathf.Abs(diff);
-    }
-
-    IEnumerator udpDbgSendCo()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(1.0f);
-            Vector3 val = new Vector3(Random.value, 0.1f, Random.value);
-            SetPosition(val);
-            SetAngleY(0f);
-        }
+        */
     }
 
     // for debug
     void OnGUI()
     {
-        GUIStyle customGuiStyle = new GUIStyle();
-        customGuiStyle.fontSize = 32;
-        customGuiStyle.alignment = TextAnchor.UpperRight;
-        GUILayout.BeginArea(new Rect(Screen.width-310, 0, 300, Screen.height));
-        GUILayout.BeginVertical();
-        GUILayout.TextArea("host:" + this.host, customGuiStyle);
-        GUILayout.TextArea("myIP:" + this.myIP, customGuiStyle);
-        foreach (MyUDPServer.MyClientInfo info in m_plInfoList)
-        {
-            GUILayout.TextArea(info.uip, customGuiStyle);
-        }
-        GUILayout.EndVertical();
-        GUILayout.EndArea();
+        MyUDPServer.ONGUISub(this.host, this.myIP, m_plInfoList);
+    }
+
+    static public float GetDiffAngleY(float _angY0, float _angY1) {
+        float diff = Mathf.Repeat((_angY1-_angY0) + 180f, 360f) - 180f;
+        return Mathf.Abs(diff);
     }
 }

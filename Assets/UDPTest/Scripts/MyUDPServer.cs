@@ -53,23 +53,30 @@ public class MyUDPServer : TmUDP.TmUDPServer
     {
         string text = System.Text.Encoding.UTF8.GetString(_rawData);
         string[] dataArr = text.Split(',');
-        MyClientInfo info = GetInfoByIP(dataArr[0], m_plInfoList);
-        if (info != null)
+        if (dataArr.Length > 0)
         {
-            Vector3 pos = Vector3.zero;
-            bool result = TryGetPosFromData(dataArr, out pos);
-            if (result)
+            MyClientInfo info = GetInfoByIP(dataArr[0], m_plInfoList);
+            if (info != null)
             {
-                info.pos = pos;
-                info.obj.transform.position = info.pos;
+                Vector3 pos = Vector3.zero;
+                bool result = TryGetPosFromData(dataArr, out pos);
+                if (result)
+                {
+                    info.pos = pos;
+                    info.obj.transform.position = info.pos;
+                }
             }
+            Debug.Log("--MyUDPServerRecv:" + text);
         }
-
-        Debug.Log("--MyUDPServerRecv:" + text);
     }
 
     public void OnAddClient(string[] _dataArr)
     {
+        if(OnAddClientSub(_dataArr, m_plInfoList, m_clientMarkerPrefab))
+        {
+            Debug.Log("--MyUDPServerAdd:" + _dataArr[0].ToString());
+        }
+        /*
         string ipStr = _dataArr[0];
         if (!m_plInfoList.Any(v => v.uip == ipStr))
         {
@@ -77,10 +84,16 @@ public class MyUDPServer : TmUDP.TmUDPServer
             m_plInfoList.Add(info);
             Debug.Log("--MyUDPServerAdd:" + ipStr.ToString());
         }
+        */
     }
 
     public void OnRemoveClient(string[] _dataArr)
     {
+        if(OnRemoveClientSub(_dataArr, m_plInfoList))
+        {
+            Debug.Log("--MyUDPServerRemove:" + _dataArr[0].ToString());
+        }
+        /*
         string ipStr = _dataArr[0];
         MyClientInfo tgt = m_plInfoList.First(v => v.uip == ipStr);
         if (tgt!=null)
@@ -91,6 +104,42 @@ public class MyUDPServer : TmUDP.TmUDPServer
             m_plInfoList.Remove(tgt);
             Debug.Log("--MyUDPServerRemove:" + ipStr.ToString());
         }
+        */
+    }
+
+    // for debug
+    void OnGUI()
+    {
+        MyUDPServer.ONGUISub(this.host, this.myIP, m_plInfoList);
+    }
+
+    static public bool OnAddClientSub(string[] _dataArr, List<MyClientInfo> _infoList, GameObject _makerPrefab)
+    {
+        bool ret = false;
+        string ipStr = _dataArr[0];
+        if (!_infoList.Any(v => v.uip == ipStr))
+        {
+            MyClientInfo info = CreateClientMarker(_dataArr, _makerPrefab);
+            _infoList.Add(info);
+            ret = true;
+        }
+        return ret;
+    }
+
+    static public bool OnRemoveClientSub(string[] _dataArr, List<MyClientInfo> _infoList)
+    {
+        bool ret = false;
+        string ipStr = _dataArr[0];
+        MyClientInfo tgt = _infoList.First(v => v.uip == ipStr);
+        if (tgt != null)
+        {
+            if (tgt.obj != null)
+                Destroy(tgt.obj);
+
+            _infoList.Remove(tgt);
+            ret = true;
+        }
+        return ret;
     }
 
     static public MyClientInfo GetInfoByIP(string _ipStr, List<MyClientInfo> _plInfoList)
@@ -159,7 +208,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    static public bool TryGetQuatFromData(string[] _dataArr, out Quaternion _rot)
+    static public bool TryGetQuatYFromData(string[] _dataArr, out Quaternion _rot)
     {
         bool ret = false;
         float angY = 0f;
@@ -171,17 +220,16 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    // for debug
-    void OnGUI()
+    static public void ONGUISub(string _host, string _myIP, List<MyClientInfo> _infoList)
     {
         GUIStyle customGuiStyle = new GUIStyle();
         customGuiStyle.fontSize = 32;
         customGuiStyle.alignment = TextAnchor.UpperRight;
         GUILayout.BeginArea(new Rect(Screen.width - 310, 0, 300, Screen.height));
         GUILayout.BeginVertical();
-        GUILayout.TextArea("host:"+this.host, customGuiStyle);
-        GUILayout.TextArea("myIP:"+this.myIP, customGuiStyle);
-        foreach (MyUDPServer.MyClientInfo info in m_plInfoList)
+        GUILayout.TextArea("host:" + _host, customGuiStyle);
+        GUILayout.TextArea("myIP:" + _myIP, customGuiStyle);
+        foreach (MyClientInfo info in _infoList)
         {
             GUILayout.TextArea(info.uip, customGuiStyle);
         }
