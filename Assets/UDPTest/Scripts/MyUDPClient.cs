@@ -30,6 +30,8 @@ public class MyUDPClient : TmUDP.TmUDPClient
         m_previousPos = transform.position;
         m_previousAngY = transform.rotation.eulerAngles.y;
         m_reloadTimer = 0f;
+        // send position when start
+        sendDataFromDataStr(getDataStrFromPosition(transform.position));
     }
 
     // Update is called once per frame
@@ -42,25 +44,17 @@ public class MyUDPClient : TmUDP.TmUDPClient
             float dist = (transform.position - m_previousPos).magnitude;
             if (dist >= m_settings.minDist)
             {
-                m_previousPos = transform.position;
-                string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(transform.position, 2);
-                string str = this.myIP + "," + MyUDPServer.KWD_POS + "," + valStr;
-                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
-                this.SendData(data);
                 m_reloadTimer = m_settings.reloadTime;
-                Debug.Log(str);
+                m_previousPos = transform.position;
+                sendDataFromDataStr(getDataStrFromPosition(transform.position));
             }
             float angY = transform.rotation.eulerAngles.y;
             float diffAngY = GetDiffAngleY(m_previousAngY, angY);
             if (diffAngY >= m_settings.minAngY)
             {
-                m_previousAngY = angY;
-                string valStr = TmUDP.TmUDPClient.AngleYToFormatedStr(angY, 2);
-                string str = this.myIP + "," + MyUDPServer.KWD_RORY + "," + valStr;
-                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
-                this.SendData(data);
                 m_reloadTimer = m_settings.reloadTime;
-                Debug.Log(str);
+                m_previousAngY = angY;
+                sendDataFromDataStr(getDataStrFromAngY(angY));
             }
         }
     }
@@ -124,6 +118,22 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             Debug.Log("----MyUDPClientRemove:" + _dataArr[0].ToString());
         }
+    }
+
+    string getDataStrFromPosition(Vector3 _position)
+    {
+        string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(_position, 2);
+        return this.myIP + "," + MyUDPServer.KWD_POS + "," + valStr;
+    }
+    string getDataStrFromAngY(float _angY)
+    {
+        string valStr = TmUDP.TmUDPClient.AngleYToFormatedStr(_angY, 2);
+        return this.myIP + "," + MyUDPServer.KWD_RORY + "," + valStr;
+    }
+    void sendDataFromDataStr(string _dataStr)
+    {
+        this.SendData(System.Text.Encoding.UTF8.GetBytes(_dataStr));
+        Debug.Log(_dataStr);
     }
 
     // for debug
