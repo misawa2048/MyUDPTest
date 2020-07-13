@@ -9,26 +9,34 @@ using UnityEngine;
 
 namespace TmUDP
 {
-    public class TmUDPClient : MonoBehaviour
+    [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
+    [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
+
+    public class TmUDPModule : MonoBehaviour
     {
-        [SerializeField, ReadOnly] string m_myIP = "";
+        static public readonly string IS_BROADCAST = "isBloadcast";
+        static public readonly string KWD_QUIT = "QuitClient";
+        [SerializeField, ReadOnly] internal bool m_isServer = true;
+
+        [SerializeField, ReadOnly] internal string m_myIP = "";
         public string myIP { get { return m_myIP; } }
-        [SerializeField, ReadOnlyWhenPlaying] string m_host = "localhost";
+        [SerializeField, ReadOnlyWhenPlaying] internal string m_host = "localhost"; // m_isServer && "" > bloadcast
         public string host { get { return m_host; } }
-        [SerializeField,ReadOnlyWhenPlaying] int m_sendPort = 7003;
-        [SerializeField, ReadOnlyWhenPlaying] int m_receivePort = 7001;
-        [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
-        [SerializeField] NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
-        [SerializeField] NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
-        //[SerializeField, ReadOnly, Tooltip("client list from base class")]
-        List<string> m_clientList = null;
-        private UdpClient m_sendUdp;
-        private UdpClient m_receiveUdp;
-        private Thread m_thread;
-        private bool m_isReceiving;
-        private List<byte[]> m_thRecvList = null;
-        private List<string> m_thAaddedClientList = null;
-        private List<string> m_thRemovedClientList = null;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_sendPort = 7001;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_receivePort = 7003;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_receiveTimeout = 1000;
+        [SerializeField] internal ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
+        [SerializeField] internal NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
+        [SerializeField] internal NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
+        [SerializeField, ReadOnly, Tooltip("client list from base class")]
+        internal List<string> m_clientList = null;
+        internal UdpClient m_sendUdp;
+        internal UdpClient m_receiveUdp;
+        internal Thread m_thread;
+        internal bool m_isReceiving;
+        internal List<byte[]> m_thRecvList=null;
+        internal List<string> m_thAaddedClientList = null;
+        internal List<string> m_thRemovedClientList = null;
 
         // Start is called before the first frame update
         public virtual void Start()
@@ -36,7 +44,7 @@ namespace TmUDP
             m_sendUdp = null;
             m_receiveUdp = null;
             m_thread = null;
-            m_myIP = GetIP();
+            m_myIP = TmUDPClient.GetIP();
             m_isReceiving = true;
             m_clientList = new List<string>();
             //--lock
@@ -108,17 +116,40 @@ namespace TmUDP
             if (m_sendUdp == null)
             {
                 m_sendUdp = new UdpClient();
-                m_sendUdp.Connect(m_host, m_sendPort);
-                Debug.Log("UDPClientSend start.");
+                if (m_isServer)
+                { //-- for server --
+                    if ((m_host == "") || (m_host == IS_BROADCAST))
+                    {
+                        m_host = IS_BROADCAST;
+                        m_sendUdp.Connect(IPAddress.Broadcast, m_sendPort);
+                        Debug.Log("UDPServerBroadcast start." + m_sendUdp.EnableBroadcast);
+                    }
+                    else
+                    {
+                        m_sendUdp.Connect(m_host, m_sendPort);
+                        Debug.Log("UDPServerSend start." + m_sendUdp.EnableBroadcast);
+                    }
+                }
+                else
+                { // -- for client --
+                    m_sendUdp.Connect(m_host, m_sendPort);
+                    Debug.Log("UDPClientSend start.");
+                }
             }
 
             if (m_receiveUdp == null)
             {
                 m_receiveUdp = new UdpClient(m_receivePort);
-                m_receiveUdp.Client.ReceiveTimeout = 1000;
-                Debug.Log("UDPClientReceive start.");
+                m_receiveUdp.Client.ReceiveTimeout = m_receiveTimeout;
+                if (m_isServer)
+                { //-- for server --
+                    Debug.Log("UDPServerReceive start.");
+                }
+                else
+                { // -- for client --
+                    Debug.Log("UDPClientReceive start.");
+                }
             }
-
             if (m_thread == null)
             {
                 m_thread = new Thread(new ThreadStart(ThreadMethod));
@@ -133,13 +164,26 @@ namespace TmUDP
             {
                 m_thread.Abort();
                 m_thread = null;
-                Debug.Log("UDPClientThreadStopped");
+                if (m_isServer)
+                { //-- for server --
+                    Debug.Log("UDPServerThreadStopped");
+                }
+                else
+                { // -- for client --
+                    Debug.Log("UDPClientThreadStopped");
+                }
             }
             if (m_sendUdp != null)
             {
-                string str = m_myIP + "," + TmUDPModule.KWD_QUIT;
-                byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
-                m_sendUdp.Send(data, data.Length);
+                if (m_isServer)
+                { //-- for server --
+                }
+                else
+                { // -- for client --
+                    string str = m_myIP + "," + TmUDPModule.KWD_QUIT;
+                    byte[] data = System.Text.Encoding.UTF8.GetBytes(str);
+                    m_sendUdp.Send(data, data.Length);
+                }
                 m_sendUdp.Close();
                 m_sendUdp = null;
             }
@@ -168,7 +212,7 @@ namespace TmUDP
                 // REMOVE
                 if (dataArr.Length > 1)
                 {
-                    if (dataArr[1].StartsWith(TmUDPModule.KWD_QUIT))
+                    if (dataArr[1].StartsWith(KWD_QUIT))
                     {
                         if (m_clientList.Contains(dataArr[0]))
                         {
@@ -177,6 +221,25 @@ namespace TmUDP
                     }
                 }
             }
+            // -- server only --
+            void thBroadcast(byte[] _data)
+            {
+                m_thRecvList.Add(_data);
+                if (m_sendUdp.EnableBroadcast)
+                {
+                    m_sendUdp.Send(_data, _data.Length);
+                }
+                else
+                {
+                    foreach (string client in m_clientList)
+                    {
+                        //m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
+                        m_sendUdp.Connect(client, m_sendPort);
+                        m_sendUdp.Send(_data, _data.Length);
+                    }
+                }
+            }
+            // -- client only --
             void thUpdate(byte[] _data)
             {
                 m_thRecvList.Add(_data);
@@ -194,7 +257,14 @@ namespace TmUDP
                             byte[] data = m_receiveUdp.Receive(ref remoteEP);
                             string text = System.Text.Encoding.UTF8.GetString(data);
                             thManageClient(text);
-                            thUpdate(data);
+                            if (m_isServer)
+                            { //-- for server --
+                                thBroadcast(data);
+                            }
+                            else
+                            { // -- for client --
+                                thUpdate(data);
+                            }
                         }
                         catch (SocketException e)
                         {
@@ -284,23 +354,23 @@ namespace TmUDP
         }
 
 
-        public static string Vector3ToFormatedStr(Vector3 _vec, int _numDecimalPoint)
+        internal static string Vector3ToFormatedStr(Vector3 _vec, int _numDecimalPoint)
         {
             string fmt = "F" + _numDecimalPoint.ToString();
-            string str = _vec.x.ToString(fmt) + ","+_vec.y.ToString(fmt)+","+_vec.z.ToString(fmt);
+            string str = _vec.x.ToString(fmt) + "," + _vec.y.ToString(fmt) + "," + _vec.z.ToString(fmt);
             return str;
         }
-        public static string AngleYToFormatedStr(float _angY, int _numDecimalPoint)
+        internal static string AngleYToFormatedStr(float _angY, int _numDecimalPoint)
         {
             string fmt = "F" + _numDecimalPoint.ToString();
             string str = _angY.ToString(fmt);
             return str;
         }
-        public static string QuaternionToFormatedStr(Quaternion _rot, int _numDecimalPoint)
+        internal static string QuaternionToFormatedStr(Quaternion _rot, int _numDecimalPoint)
         {
             string fmt = "F" + _numDecimalPoint.ToString();
-            string str = _rot.x.ToString(fmt) + "," +_rot.y.ToString(fmt) + ","
-                +_rot.z.ToString(fmt) + "," +_rot.w.ToString(fmt);
+            string str = _rot.x.ToString(fmt) + "," + _rot.y.ToString(fmt) + ","
+                + _rot.z.ToString(fmt) + "," + _rot.w.ToString(fmt);
             return str;
         }
     }

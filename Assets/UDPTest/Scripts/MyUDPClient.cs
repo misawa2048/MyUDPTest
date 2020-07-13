@@ -112,14 +112,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             Debug.Log("----MyUDPClientAdd:" + _dataArr[0].ToString());
         }
-        /*
-        if (!m_plInfoList.Any(v => v.uip == ipStr))
-        {
-            MyUDPServer.MyClientInfo info = MyUDPServer.CreateClientMarker(_dataArr, m_clientMarkerPrefab);
-            m_plInfoList.Add(info);
-            Debug.Log("----MyUDPClientAdd:" + ipStr.ToString());
-        }
-        */
     }
 
     public void OnRemoveClient(string[] _dataArr)
@@ -132,17 +124,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             Debug.Log("----MyUDPClientRemove:" + _dataArr[0].ToString());
         }
-        /*
-        MyUDPServer.MyClientInfo tgt = m_plInfoList.First(v => v.uip == ipStr);
-        if (tgt != null)
-        {
-            if (tgt.obj != null)
-                Destroy(tgt.obj);
-
-            m_plInfoList.Remove(tgt);
-            Debug.Log("----MyUDPClientRemove:" + ipStr.ToString());
-        }
-        */
     }
 
     // for debug

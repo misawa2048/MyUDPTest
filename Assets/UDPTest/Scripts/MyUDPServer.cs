@@ -76,15 +76,6 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             Debug.Log("--MyUDPServerAdd:" + _dataArr[0].ToString());
         }
-        /*
-        string ipStr = _dataArr[0];
-        if (!m_plInfoList.Any(v => v.uip == ipStr))
-        {
-            MyClientInfo info = CreateClientMarker(_dataArr,m_clientMarkerPrefab);
-            m_plInfoList.Add(info);
-            Debug.Log("--MyUDPServerAdd:" + ipStr.ToString());
-        }
-        */
     }
 
     public void OnRemoveClient(string[] _dataArr)
@@ -93,18 +84,6 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             Debug.Log("--MyUDPServerRemove:" + _dataArr[0].ToString());
         }
-        /*
-        string ipStr = _dataArr[0];
-        MyClientInfo tgt = m_plInfoList.First(v => v.uip == ipStr);
-        if (tgt!=null)
-        {
-            if (tgt.obj != null)
-                Destroy(tgt.obj);
-
-            m_plInfoList.Remove(tgt);
-            Debug.Log("--MyUDPServerRemove:" + ipStr.ToString());
-        }
-        */
     }
 
     // for debug

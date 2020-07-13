@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Threading;
-using System.Text; // for encoding
 using System.Linq;
 using UnityEngine;
 
@@ -12,20 +11,17 @@ namespace TmUDP
 {
     public class TmUDPServer : MonoBehaviour
     {
-        [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
-        [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
-
-        readonly string IS_BROADCAST = "isBloadcast";
         [SerializeField, ReadOnly] string m_myIP = "";
         public string myIP { get { return m_myIP; } }
-        [SerializeField, ReadOnlyWhenPlaying] string m_host = ""; // bloadcast
+        [SerializeField, ReadOnlyWhenPlaying] string m_host = "localhost"; // bloadcast
         public string host { get { return m_host; } }
         [SerializeField, ReadOnlyWhenPlaying] int m_sendPort = 7001;
         [SerializeField, ReadOnlyWhenPlaying] int m_receivePort = 7003;
         [SerializeField] ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
         [SerializeField] NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
-        [SerializeField, ReadOnly,Tooltip("client list from base class")] List<string> m_clientList = null;
+        [SerializeField, ReadOnly, Tooltip("client list from base class")]
+        List<string> m_clientList = null;
         private UdpClient m_sendUdp;
         private UdpClient m_receiveUdp;
         private Thread m_thread;
@@ -33,7 +29,6 @@ namespace TmUDP
         private List<byte[]> m_thRecvList=null;
         private List<string> m_thAaddedClientList = null;
         private List<string> m_thRemovedClientList = null;
-        //public List<byte[]> clientList { get { return m_clientList; } }
 
         // Start is called before the first frame update
         public virtual void Start()
@@ -113,9 +108,9 @@ namespace TmUDP
             if (m_sendUdp == null)
             {
                 m_sendUdp = new UdpClient();
-                if ((m_host == "") || (m_host == IS_BROADCAST))
+                if ((m_host == "") || (m_host == TmUDPModule.IS_BROADCAST))
                 {
-                    m_host = IS_BROADCAST;
+                    m_host = TmUDPModule.IS_BROADCAST;
                     m_sendUdp.Connect(IPAddress.Broadcast, m_sendPort);
                     Debug.Log("UDPServerBroadcast start."+ m_sendUdp.EnableBroadcast);
                 }
@@ -179,7 +174,7 @@ namespace TmUDP
                 // REMOVE
                 if (dataArr.Length > 1)
                 {
-                    if (dataArr[1].StartsWith(TmUDPClient.KWD_QUIT))
+                    if (dataArr[1].StartsWith(TmUDPModule.KWD_QUIT))
                     {
                         if (m_clientList.Contains(dataArr[0]))
                         {
