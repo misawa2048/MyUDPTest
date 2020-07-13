@@ -254,10 +254,11 @@ namespace TmUDP
                 }
                 string text = System.Text.Encoding.UTF8.GetString(_data);
                 string[] dataArr = text.Split(',');
-                if((dataArr.Length>0)&&(dataArr[0] == KWD_INIT)){
+                if((dataArr.Length>1)&&(dataArr[1] == KWD_INIT)){
                     foreach (string client in m_clientList)
                     {
-                        SendDataFromDataStr(client + "," + KWD_REQPOS);
+                        m_sendUdp.Connect(client, m_sendPort);
+                        SendDataFromDataStr(dataArr[0] + "," + KWD_REQPOS);
                     }
                 }
             }
