@@ -59,7 +59,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
             if (info != null)
             {
                 Vector3 pos = Vector3.zero;
-                bool result = TryGetPosFromData(dataArr, out pos);
+                bool isInit = false;
+                bool result = TryGetPosFromData(dataArr, out pos, out isInit);
                 if (result)
                 {
                     info.pos = pos;
@@ -139,22 +140,36 @@ public class MyUDPServer : TmUDP.TmUDPServer
     static public MyClientInfo CreateClientMarker(string[] _dataArr,GameObject _prefab)
     {
         Vector3 pos=Vector3.zero;
-        bool result = TryGetPosFromData(_dataArr, out pos);
+        bool isInit = false;
+        bool result = TryGetPosFromData(_dataArr, out pos, out isInit);
         GameObject go = Instantiate(_prefab, pos, Quaternion.identity);
         MyClientInfo info = new MyClientInfo(_dataArr[0], go, pos);
         return info;
     }
 
-    static public bool TryGetPosFromData(string[] _dataArr, out Vector3 _pos)
+    static public bool TryGetPosFromData(string[] _dataArr, out Vector3 _pos, out bool _isInit)
     {
         bool ret = false;
         _pos = Vector3.zero;
+        _isInit = false;
         int index = 0;
         try
         {
             index = _dataArr.Select((dat, idx) => new LinqSch(idx, dat)).FirstOrDefault(e => e.data.Equals(KWD_POS)).index;
         }
         catch (System.Exception e) { Debug.Log(e); }
+        if (index == 0)
+        {
+            try
+            {
+                index = _dataArr.Select((dat, idx) => new LinqSch(idx, dat)).FirstOrDefault(e => e.data.Equals(KWD_INIT)).index;
+            }
+            catch (System.Exception e) { Debug.Log(e); }
+            if (index > 0)
+            {
+                _isInit = true;
+            }
+        }
 
         if ((index > 0) && (_dataArr.Length > index + 3))
         { // Pos,x,y,z

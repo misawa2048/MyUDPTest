@@ -30,8 +30,8 @@ public class MyUDPClient : TmUDP.TmUDPClient
         m_previousPos = transform.position;
         m_previousAngY = transform.rotation.eulerAngles.y;
         m_reloadTimer = 0f;
-        // send position when start
-        this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT);
+        // send init when start
+        this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT+","+ Vector3ToFormatedStr(transform.position,2));
     }
 
     // Update is called once per frame
@@ -68,22 +68,23 @@ public class MyUDPClient : TmUDP.TmUDPClient
             string ipStr = dataArr[0];
             if (ipStr != this.myIP)
             {
-                if ((dataArr.Length > 1) && (dataArr[1] == TmUDP.TmUDPModule.KWD_REQPOS))
-                {
-                    Debug.Log("-**-MyUDPClientRecvREQ:" + text);
-                }
                 MyUDPServer.MyClientInfo info = MyUDPServer.GetInfoByIP(dataArr[0], m_plInfoList);
                 if (info != null)
                 {
                     Vector3 pos = Vector3.zero;
-                    bool posResult = MyUDPServer.TryGetPosFromData(dataArr, out pos);
+                    bool isInit = false;
+                    bool posResult = MyUDPServer.TryGetPosFromData(dataArr, out pos, out isInit);
                     if (posResult)
                     {
                         info.pos = pos;
                         info.obj.transform.position = info.pos;
                     }
+                    if (isInit)
+                    {
+                        Debug.Log("-**-MyUDPClientRecvREQ:" + text);
+                    }
 
-                    float angY=0f;
+                    float angY =0f;
                     bool angResult = MyUDPServer.TryGetAngleYFromData(dataArr, out angY);
                     if (angResult)
                     {

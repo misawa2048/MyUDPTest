@@ -16,8 +16,7 @@ namespace TmUDP
     {
         static public readonly string IS_BROADCAST = "isBloadcast";
         static public readonly string KWD_QUIT = "QuitClient";
-        static public readonly string KWD_INIT = "CollectInit";
-        static public readonly string KWD_REQPOS = "RequestPos";
+        static public readonly string KWD_INIT = "InitClient";
         [SerializeField, ReadOnly] internal bool m_isServer = true;
 
         [SerializeField, ReadOnly] internal string m_myIP = "";
@@ -250,15 +249,6 @@ namespace TmUDP
                         //m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
                         m_sendUdp.Connect(client, m_sendPort);
                         m_sendUdp.Send(_data, _data.Length);
-                    }
-                }
-                string text = System.Text.Encoding.UTF8.GetString(_data);
-                string[] dataArr = text.Split(',');
-                if((dataArr.Length>1)&&(dataArr[1] == KWD_INIT)){
-                    foreach (string client in m_clientList)
-                    {
-                        m_sendUdp.Connect(client, m_sendPort);
-                        SendDataFromDataStr(dataArr[0] + "," + KWD_REQPOS);
                     }
                 }
             }
