@@ -2043,7 +2043,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_isServer: 1
   m_myIP: 
-  m_host: 192.168.1.5
+  m_host: localhost
   m_sendPort: 7003
   m_receivePort: 7001
   m_receiveTimeout: 1000
