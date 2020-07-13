@@ -81,6 +81,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
                     }
                     if (isInit)
                     {
+                        this.SendDataFromDataStr(getDataStrFromPosition(this.myIP, transform.position));
                         Debug.Log("-**-MyUDPClientRecvREQ:" + text);
                     }
 
