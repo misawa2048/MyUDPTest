@@ -31,7 +31,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         m_previousAngY = transform.rotation.eulerAngles.y;
         m_reloadTimer = 0f;
         // send position when start
-        sendDataFromDataStr(getDataStrFromPosition(transform.position));
+        this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT);
     }
 
     // Update is called once per frame
@@ -46,7 +46,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
             {
                 m_reloadTimer = m_settings.reloadTime;
                 m_previousPos = transform.position;
-                sendDataFromDataStr(getDataStrFromPosition(transform.position));
+                this.SendDataFromDataStr(getDataStrFromPosition(this.myIP,transform.position));
             }
             float angY = transform.rotation.eulerAngles.y;
             float diffAngY = GetDiffAngleY(m_previousAngY, angY);
@@ -54,7 +54,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
             {
                 m_reloadTimer = m_settings.reloadTime;
                 m_previousAngY = angY;
-                sendDataFromDataStr(getDataStrFromAngY(angY));
+                this.SendDataFromDataStr(getDataStrFromAngY(this.myIP, angY));
             }
         }
     }
@@ -68,6 +68,10 @@ public class MyUDPClient : TmUDP.TmUDPClient
             string ipStr = dataArr[0];
             if (ipStr != this.myIP)
             {
+                if ((dataArr.Length > 1) && (dataArr[1] == TmUDP.TmUDPModule.KWD_REQPOS))
+                {
+                    Debug.Log("-**-MyUDPClientRecvREQ:" + text);
+                }
                 MyUDPServer.MyClientInfo info = MyUDPServer.GetInfoByIP(dataArr[0], m_plInfoList);
                 if (info != null)
                 {
@@ -118,22 +122,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             Debug.Log("----MyUDPClientRemove:" + _dataArr[0].ToString());
         }
-    }
-
-    string getDataStrFromPosition(Vector3 _position)
-    {
-        string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(_position, 2);
-        return this.myIP + "," + MyUDPServer.KWD_POS + "," + valStr;
-    }
-    string getDataStrFromAngY(float _angY)
-    {
-        string valStr = TmUDP.TmUDPClient.AngleYToFormatedStr(_angY, 2);
-        return this.myIP + "," + MyUDPServer.KWD_RORY + "," + valStr;
-    }
-    void sendDataFromDataStr(string _dataStr)
-    {
-        this.SendData(System.Text.Encoding.UTF8.GetBytes(_dataStr));
-        Debug.Log(_dataStr);
     }
 
     // for debug

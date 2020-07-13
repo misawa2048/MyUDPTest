@@ -16,6 +16,8 @@ namespace TmUDP
     {
         static public readonly string IS_BROADCAST = "isBloadcast";
         static public readonly string KWD_QUIT = "QuitClient";
+        static public readonly string KWD_INIT = "CollectInit";
+        static public readonly string KWD_REQPOS = "RequestPos";
         [SerializeField, ReadOnly] internal bool m_isServer = true;
 
         [SerializeField, ReadOnly] internal string m_myIP = "";
@@ -113,7 +115,7 @@ namespace TmUDP
 
         internal virtual void OnApplicationPause(bool isPpause)
         {
-#if UNITY_ANDROID || UNITY_IPHONE
+#if (UNITY_ANDROID || UNITY_IPHONE) && !UNITY_EDITOR
             if (isPpause)
             {
                 udpStop();
@@ -250,6 +252,14 @@ namespace TmUDP
                         m_sendUdp.Send(_data, _data.Length);
                     }
                 }
+                string text = System.Text.Encoding.UTF8.GetString(_data);
+                string[] dataArr = text.Split(',');
+                if((dataArr.Length>0)&&(dataArr[0] == KWD_INIT)){
+                    foreach (string client in m_clientList)
+                    {
+                        SendDataFromDataStr(client + "," + KWD_REQPOS);
+                    }
+                }
             }
             // -- client only --
             void thUpdate(byte[] _data)
@@ -290,6 +300,22 @@ namespace TmUDP
             }
         }
 
+        internal string getDataStrFromPosition(string _ip, Vector3 _position)
+        {
+            string valStr = TmUDP.TmUDPClient.Vector3ToFormatedStr(_position, 2);
+            return _ip + "," + MyUDPServer.KWD_POS + "," + valStr;
+        }
+        internal string getDataStrFromAngY(string _ip, float _angY)
+        {
+            string valStr = TmUDP.TmUDPClient.AngleYToFormatedStr(_angY, 2);
+            return _ip + "," + MyUDPServer.KWD_RORY + "," + valStr;
+        }
+
+        internal void SendDataFromDataStr(string _dataStr)
+        {
+            this.SendData(System.Text.Encoding.UTF8.GetBytes(_dataStr));
+            Debug.Log(_dataStr);
+        }
         internal void SendData(byte[] _data)
         {
             m_sendUdp.Send(_data, _data.Length);
