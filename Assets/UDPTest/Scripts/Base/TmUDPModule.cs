@@ -378,7 +378,7 @@ namespace TmUDP
 #if UNITY_ANDROID || UNITY_IPHONE
             return GetLocalIP();
 #else
-            return GetLocalIP(ADDRESSFAM.IPv4);
+            return GetLocalIP();
 #endif
         }
 
