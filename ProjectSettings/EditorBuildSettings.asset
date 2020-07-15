@@ -5,16 +5,19 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 0
+    path: Assets/UDPTest/Scenes/TmServerTest.unity
+    guid: 1d95cd4fc1d197a4e9bda5e589da62b2
   - enabled: 1
-    path: Assets/UDPTest/Scenes/TmServerClientPlayerTest.unity
+    path: Assets/UDPTest/Scenes/TmClientPlayerTest.unity
     guid: 9b30d25a4e9f4e447aa925fc4f273739
   - enabled: 1
-    path: Assets/UDPTest/Scenes/Receive.unity
+    path: Assets/UDPTest/Scenes/ReceiveTest.unity
     guid: 382f2209622fc0b42bb513bff097f9c9
   - enabled: 1
-    path: Assets/UDPTest/Scenes/Send.unity
+    path: Assets/UDPTest/Scenes/SendTest.unity
     guid: fda66e966d52c31449756267740c94f4
   - enabled: 1
-    path: Assets/UDPTest/Scenes/SendAndReceive.unity
+    path: Assets/UDPTest/Scenes/SendAndReceiveTest.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects: {}

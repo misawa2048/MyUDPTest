@@ -7,7 +7,7 @@ public class PlayerCtrlWithButton : MonoBehaviour
     [SerializeField] Transform m_targetTr = null;
     [SerializeField] Transform m_cameraTargetTr = null;
     [SerializeField] Camera m_targetCamera = null;
-    [SerializeField,Tooltip("L/R,Jump,and F/W")] Vector3 m_moveSped = new Vector3(1f, 1f, 1f);
+    [SerializeField,Tooltip("L/R,Jump,and F/W")] Vector3 m_moveSped = new Vector3(100f, 5f, 5f);
     Rigidbody m_rigidbody = null;
     Vector3 m_speed;
     // Start is called before the first frame update

@@ -11,7 +11,7 @@ namespace TmUDPTest
 {
     public class UDPReceiveTest : MonoBehaviour
     {
-        static readonly string PORT_KEY_NAME = "ReceivePort";
+        static readonly string PORT_KEY_NAME = "iTESTReceivePort";
         static readonly int RING_SIZE = 16;
         [SerializeField] int m_port = 7001;
         [SerializeField] InputField m_portField = null;

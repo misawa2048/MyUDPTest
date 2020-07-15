@@ -12,8 +12,8 @@ namespace TmUDPTest
 {
     public class UDPSendTest : MonoBehaviour
     {
-        readonly string HOST_KEY_NAME = "sSendHost";
-        readonly string PORT_KEY_NAME = "iSendPort";
+        readonly string HOST_KEY_NAME = "sTESTSendHost";
+        readonly string PORT_KEY_NAME = "iTESTSendPort";
         readonly string IS_BROADCAST = "isBloadcast";
         [SerializeField] string m_host = "localhost";
         [SerializeField] int m_port = 7001;

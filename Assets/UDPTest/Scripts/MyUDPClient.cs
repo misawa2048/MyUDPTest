@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MyUDPClient : TmUDP.TmUDPClient
 {
+    public static readonly bool USE_PLAYERPREFS = true;
+    public static readonly string PREFS_KEY_HOST = "KeyHost";
     [System.Serializable]
     public class MyClientSettings
     {
@@ -25,6 +28,11 @@ public class MyUDPClient : TmUDP.TmUDPClient
     // Start is called before the first frame update
     public override void Start()
     {
+        if (USE_PLAYERPREFS && PlayerPrefs.HasKey(PREFS_KEY_HOST))
+        {
+            this.m_host = PlayerPrefs.GetString(PREFS_KEY_HOST);
+            Debug.Log("Change host");
+        }
         base.Start();
         m_plInfoList = new List<MyUDPServer.MyClientInfo>();
         m_previousPos = transform.position;
@@ -124,6 +132,13 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {
             Debug.Log("----MyUDPClientRemove:" + _dataArr[0].ToString());
         }
+    }
+
+    public void OnChangeHost(string _hostStr)
+    {
+        PlayerPrefs.SetString(PREFS_KEY_HOST, _hostStr);
+        Debug.Log("Change host > "+ _hostStr);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     // for debug
