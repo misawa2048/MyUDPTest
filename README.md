@@ -14,4 +14,4 @@ HOW TO USE
 - If you want to change server IP from script, change TmUDPClient.host from script.  
   ![hostIP on script](img/clientInspector.png)  
 
-![https://youtu.be/uScpPz1SkC8](https://www.youtube.com/watch?v=uScpPz1SkC8)
+[https://youtu.be/uScpPz1SkC8](https://www.youtube.com/watch?v=uScpPz1SkC8)
