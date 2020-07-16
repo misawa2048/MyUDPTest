@@ -1,6 +1,6 @@
 # MyUDPTest  
 # https://github.com/misawa2048/MyUDPTest/blob/master/README.md
-UDP srnd and receive test  
+UDP send and receive module  
 HOW TO USE  
 - Build server  
   ![build server](img/buildServer.png)  
