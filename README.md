@@ -1,4 +1,5 @@
 # MyUDPTest  
+# https://github.com/misawa2048/MyUDPTest/blob/master/README.md
 UDP srnd and receive test  
 HOW TO USE  
 - Build server  
