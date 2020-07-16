@@ -219,13 +219,17 @@ public class MyUDPServer : TmUDP.TmUDPServer
         GUIStyle customGuiStyle = new GUIStyle();
         customGuiStyle.fontSize = 32;
         customGuiStyle.alignment = TextAnchor.UpperRight;
+        customGuiStyle.normal.textColor = Color.black;
         GUILayout.BeginArea(new Rect(Screen.width - 310, 0, 300, Screen.height));
         GUILayout.BeginVertical();
         GUILayout.TextArea("host:" + _host, customGuiStyle);
         GUILayout.TextArea("myIP:" + _myIP, customGuiStyle);
         foreach (MyClientInfo info in _infoList)
         {
+            customGuiStyle.normal.textColor = new Color(0.1f,0.1f,0.1f);
             GUILayout.TextArea(info.uip, customGuiStyle);
+            customGuiStyle.normal.textColor = new Color(0f, 0f, 0.4f);
+            GUILayout.TextArea(info.pos.ToString(), customGuiStyle);
         }
         GUILayout.EndVertical();
         GUILayout.EndArea();
