@@ -14,16 +14,17 @@ public class MyUDPClient : TmUDP.TmUDPClient
         [Tooltip("Minimum distance to send message")]  public float minDist = 0.5f;
         [Tooltip("Minimum rotationY to send message")] public float minAngY = 5f;
         [Tooltip("Minimum time to send message again")] public float reloadTime = 0.2f;
+        [Tooltip("Parent transform for offset")] public Transform parentTr = null;
     }
     [SerializeField,ReadOnly,Tooltip("clients except me")] List<MyUDPServer.MyClientInfo> m_plInfoList = null;
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
     [SerializeField, ReadOnlyWhenPlaying] MyClientSettings m_settings = new MyClientSettings();
     Vector3 m_previousPos;
-    float m_previousAngY;
+    Quaternion m_previousRot;
     float m_reloadTimer;
 
-    public void SetPosition(Vector3 _pos) { transform.position = _pos; }
-    public void SetAngleY(float _angY) { transform.rotation = Quaternion.AngleAxis(_angY,Vector3.up); }
+    //public void SetPosition(Vector3 _pos) { transform.position = _pos; }
+    //public void SetAngleY(float _angY) { transform.rotation = Quaternion.AngleAxis(_angY,Vector3.up); }
 
     // Start is called before the first frame update
     public override void Start()
@@ -36,7 +37,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         base.Start();
         m_plInfoList = new List<MyUDPServer.MyClientInfo>();
         m_previousPos = transform.position;
-        m_previousAngY = transform.rotation.eulerAngles.y;
+        m_previousRot = transform.rotation;
         m_reloadTimer = 0f;
         // send init when start
         this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT+","+ Vector3ToFormatedStr(transform.position,2));
@@ -56,13 +57,13 @@ public class MyUDPClient : TmUDP.TmUDPClient
                 m_previousPos = transform.position;
                 this.SendDataFromDataStr(getDataStrFromPosition(this.myIP,transform.position));
             }
-            float angY = transform.rotation.eulerAngles.y;
-            float diffAngY = GetDiffAngleY(m_previousAngY, angY);
+            Quaternion rot = transform.rotation;
+            float diffAngY = GetDiffRot(m_previousRot, rot);
             if (diffAngY >= m_settings.minAngY)
             {
                 m_reloadTimer = m_settings.reloadTime;
-                m_previousAngY = angY;
-                this.SendDataFromDataStr(getDataStrFromAngY(this.myIP, angY));
+                m_previousRot = rot;
+                this.SendDataFromDataStr(getDataStrFromRotation(this.myIP, rot));
             }
         }
     }
@@ -99,6 +100,13 @@ public class MyUDPClient : TmUDP.TmUDPClient
                     {
                         info.obj.transform.rotation = Quaternion.AngleAxis(angY,Vector3.up);
                     }
+
+                    Quaternion rot = Quaternion.identity;
+                    bool rotResult = MyUDPServer.TryGetQuatFromData(dataArr, out rot);
+                    if (rotResult)
+                    {
+                        info.obj.transform.rotation = rot;
+                    }
                 }
                 Debug.Log("----MyUDPClientOtherRecv:" + text);
             }
@@ -116,7 +124,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         if (ipStr == this.myIP)
             return;
 
-        if (MyUDPServer.OnAddClientSub(_dataArr, m_plInfoList, m_clientMarkerPrefab))
+        if (MyUDPServer.OnAddClientSub(_dataArr, m_plInfoList, m_clientMarkerPrefab, m_settings.parentTr))
         {
             Debug.Log("----MyUDPClientAdd:" + _dataArr[0].ToString());
         }
@@ -149,6 +157,12 @@ public class MyUDPClient : TmUDP.TmUDPClient
 
     static public float GetDiffAngleY(float _angY0, float _angY1) {
         float diff = Mathf.Repeat((_angY1-_angY0) + 180f, 360f) - 180f;
+        return Mathf.Abs(diff);
+    }
+
+    static public float GetDiffRot(Quaternion _rot0, Quaternion _rot1)
+    {
+        float diff = Quaternion.Angle(_rot0,_rot1);
         return Mathf.Abs(diff);
     }
 }

@@ -7,7 +7,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
 {
     //public static readonly string KWD_QUIT = TmUDP.TmUDPClient.KWD_QUIT;
     public static readonly string KWD_POS = "Pos";
-    public static readonly string KWD_RORY = "RotY";
+    public static readonly string KWD_ANGY = "AngY";
+    public static readonly string KWD_QUAT = "Quat";
 
     [System.Serializable]
     public class MyClientInfo
@@ -64,7 +65,13 @@ public class MyUDPServer : TmUDP.TmUDPServer
                 if (result)
                 {
                     info.pos = pos;
-                    info.obj.transform.position = info.pos;
+                    info.obj.transform.localPosition = info.pos;
+                }
+                Quaternion rot = Quaternion.identity;
+                result = TryGetQuatFromData(dataArr, out rot);
+                if (result)
+                {
+                    info.obj.transform.localRotation = rot;
                 }
             }
             Debug.Log("--MyUDPServerRecv:" + text);
@@ -73,7 +80,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
 
     public void OnAddClient(string[] _dataArr)
     {
-        if(OnAddClientSub(_dataArr, m_plInfoList, m_clientMarkerPrefab))
+        if(OnAddClientSub(_dataArr, m_plInfoList, m_clientMarkerPrefab, transform.parent))
         {
             Debug.Log("--MyUDPServerAdd:" + _dataArr[0].ToString());
         }
@@ -93,13 +100,13 @@ public class MyUDPServer : TmUDP.TmUDPServer
         MyUDPServer.ONGUISub(this.host, this.myIP, m_plInfoList);
     }
 
-    static public bool OnAddClientSub(string[] _dataArr, List<MyClientInfo> _infoList, GameObject _makerPrefab)
+    static public bool OnAddClientSub(string[] _dataArr, List<MyClientInfo> _infoList, GameObject _makerPrefab, Transform _parent=null)
     {
         bool ret = false;
         string ipStr = _dataArr[0];
         if (!_infoList.Any(v => v.uip == ipStr))
         {
-            MyClientInfo info = CreateClientMarker(_dataArr, _makerPrefab);
+            MyClientInfo info = CreateClientMarker(_dataArr, _makerPrefab, _parent);
             _infoList.Add(info);
             ret = true;
         }
@@ -137,12 +144,13 @@ public class MyUDPServer : TmUDP.TmUDPServer
     }
 
 
-    static public MyClientInfo CreateClientMarker(string[] _dataArr,GameObject _prefab)
+    static public MyClientInfo CreateClientMarker(string[] _dataArr,GameObject _prefab, Transform _parent=null)
     {
         Vector3 pos=Vector3.zero;
         bool isInit = false;
         bool result = TryGetPosFromData(_dataArr, out pos, out isInit);
         GameObject go = Instantiate(_prefab, pos, Quaternion.identity);
+        go.transform.SetParent(_parent);
         MyClientInfo info = new MyClientInfo(_dataArr[0], go, pos);
         return info;
     }
@@ -189,7 +197,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         int index = 0;
         try
         {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_RORY)).Idx;
+            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_ANGY)).Idx;
         }
         catch (System.Exception e) { Debug.Log(e); }
 
@@ -202,14 +210,26 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    static public bool TryGetQuatYFromData(string[] _dataArr, out Quaternion _rot)
+    static public bool TryGetQuatFromData(string[] _dataArr, out Quaternion _rot)
     {
         bool ret = false;
-        float angY = 0f;
         _rot = Quaternion.identity;
-        if (TryGetAngleYFromData(_dataArr,out angY)){
+
+        int index = 0;
+        try
+        {
+            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_QUAT)).Idx;
+        }
+        catch (System.Exception e) { Debug.Log(e); }
+
+        if ((index > 0) && (_dataArr.Length > index + 4))
+        { // rotY
             ret = true;
-            _rot = Quaternion.AngleAxis(angY, Vector3.up);
+            float.TryParse(_dataArr[index + 1], out _rot.x);
+            float.TryParse(_dataArr[index + 2], out _rot.y);
+            float.TryParse(_dataArr[index + 3], out _rot.z);
+            float.TryParse(_dataArr[index + 4], out _rot.w);
+            Debug.Log("Quat=" + _rot.ToString());
         }
         return ret;
     }
@@ -226,7 +246,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         GUILayout.TextArea("myIP:" + _myIP, customGuiStyle);
         foreach (MyClientInfo info in _infoList)
         {
-            customGuiStyle.normal.textColor = new Color(0.1f,0.1f,0.1f);
+            customGuiStyle.normal.textColor = new Color(0.1f, 0.1f, 0.1f);
             GUILayout.TextArea(info.uip, customGuiStyle);
             customGuiStyle.normal.textColor = new Color(0f, 0f, 0.4f);
             GUILayout.TextArea(info.pos.ToString(), customGuiStyle);

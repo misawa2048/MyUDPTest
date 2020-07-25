@@ -299,7 +299,12 @@ namespace TmUDP
         internal string getDataStrFromAngY(string _ip, float _angY)
         {
             string valStr = TmUDP.TmUDPClient.AngleYToFormatedStr(_angY, 2);
-            return _ip + "," + MyUDPServer.KWD_RORY + "," + valStr;
+            return _ip + "," + MyUDPServer.KWD_ANGY + "," + valStr;
+        }
+        internal string getDataStrFromRotation(string _ip, Quaternion _rot)
+        {
+            string valStr = TmUDP.TmUDPClient.QuaternionToFormatedStr(_rot, 2);
+            return _ip + "," + MyUDPServer.KWD_QUAT + "," + valStr;
         }
 
         internal void SendDataFromDataStr(string _dataStr)

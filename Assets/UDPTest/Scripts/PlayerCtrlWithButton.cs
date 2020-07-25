@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerCtrlWithButton : MonoBehaviour
 {
     [SerializeField] Transform m_targetTr = null;
-    [SerializeField] Transform m_cameraTargetTr = null;
+    [SerializeField] Transform m_cameraPivotTr = null;
     [SerializeField] Camera m_targetCamera = null;
     [SerializeField,Tooltip("L/R,Jump,and F/W")] Vector3 m_moveSped = new Vector3(100f, 5f, 5f);
     Rigidbody m_rigidbody = null;
@@ -13,7 +13,9 @@ public class PlayerCtrlWithButton : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        m_rigidbody = m_targetTr.GetComponent<Rigidbody>();
+        m_rigidbody = m_targetTr.GetComponentInChildren<Rigidbody>();
+        CapsuleCollider coll = m_targetTr.GetComponent<CapsuleCollider>();
+        m_rigidbody.centerOfMass = coll.center;
         m_speed = Vector3.zero;
         if (m_targetCamera == null)
         {
@@ -37,8 +39,8 @@ public class PlayerCtrlWithButton : MonoBehaviour
             m_rigidbody.AddForce(Vector3.up* m_moveSped.y,ForceMode.VelocityChange);
         }
 
-        m_targetCamera.transform.position = Vector3.Lerp(m_targetCamera.transform.position, m_cameraTargetTr.position, 0.1f);
-        m_targetCamera.transform.rotation = Quaternion.Lerp(m_targetCamera.transform.rotation, m_cameraTargetTr.rotation, 0.5f);
+        m_targetCamera.transform.position = Vector3.Lerp(m_targetCamera.transform.position, m_cameraPivotTr.position, 0.1f);
+        m_targetCamera.transform.rotation = Quaternion.Lerp(m_targetCamera.transform.rotation, m_cameraPivotTr.rotation, 0.5f);
     }
 
     public void OnForwardButtonDown()
