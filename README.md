@@ -10,6 +10,7 @@ HOW TO USE
 - Run client  
 - change server IP on client same as server  
   ![server IP](img/serverIP.png)  
+  In the example above, 192.168.1.3 or 192.168.1.3:7001:7003 .  
   ![server IP on client](img/clientIP.png)  
 - If you want to change server IP from script, change TmUDPClient.host from script.  
   ![hostIP on script](img/clientInspector.png)  
