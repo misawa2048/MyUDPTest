@@ -8,6 +8,8 @@ public class MyUDPClient : TmUDP.TmUDPClient
 {
     public static readonly bool USE_PLAYERPREFS = true;
     public static readonly string PREFS_KEY_HOST = "KeyHost";
+    public static readonly string PREFS_KEY_SEND_PORT = "KeySendPort";
+    public static readonly string PREFS_KEY_RECV_PORT = "KeyRecvPort";
     [System.Serializable]
     public class MyClientSettings
     {
@@ -34,6 +36,11 @@ public class MyUDPClient : TmUDP.TmUDPClient
             this.m_host = PlayerPrefs.GetString(PREFS_KEY_HOST);
             Debug.Log("Change host");
         }
+        if (USE_PLAYERPREFS && PlayerPrefs.HasKey(PREFS_KEY_SEND_PORT))
+            this.m_sendPort = PlayerPrefs.GetInt(PREFS_KEY_SEND_PORT);
+        if (USE_PLAYERPREFS && PlayerPrefs.HasKey(PREFS_KEY_RECV_PORT))
+            this.m_receivePort = PlayerPrefs.GetInt(PREFS_KEY_RECV_PORT);
+
         base.Start();
         m_plInfoList = new List<MyUDPServer.MyClientInfo>();
         m_previousPos = transform.position;
@@ -144,9 +151,22 @@ public class MyUDPClient : TmUDP.TmUDPClient
 
     public void OnChangeHost(string _hostStr)
     {
-        PlayerPrefs.SetString(PREFS_KEY_HOST, _hostStr);
-        Debug.Log("Change host > "+ _hostStr);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        string[] hostInfoStrArr = _hostStr.Split(':');
+        if (hostInfoStrArr.Length > 0)
+        {
+            PlayerPrefs.SetString(PREFS_KEY_HOST, hostInfoStrArr[0]);
+            if (hostInfoStrArr.Length > 2)
+            {
+                int hSp = this.m_receivePort; // host's send port = client's receive port
+                int hRp = this.m_sendPort;    // host's receive port = client's send port
+                int.TryParse(hostInfoStrArr[1], out hSp);
+                int.TryParse(hostInfoStrArr[2], out hRp);
+                PlayerPrefs.SetInt(PREFS_KEY_SEND_PORT, hRp);
+                PlayerPrefs.SetInt(PREFS_KEY_RECV_PORT, hSp);
+            }
+            Debug.Log("Change host > " + _hostStr);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     }
 
     // for debug
