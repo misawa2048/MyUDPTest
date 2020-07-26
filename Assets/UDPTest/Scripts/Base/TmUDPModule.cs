@@ -25,6 +25,8 @@ namespace TmUDP
         public string host { get { return m_host; } }
         [SerializeField, ReadOnlyWhenPlaying] internal int m_sendPort = 7001;
         [SerializeField, ReadOnlyWhenPlaying] internal int m_receivePort = 7003;
+        public int sendPort { get { return m_sendPort; } }
+        public int receivePort { get { return m_receivePort; } }
         [SerializeField, ReadOnlyWhenPlaying] internal int m_receiveTimeout = 1000;
         [SerializeField] internal ReceiveEvent m_onReceiveEvnts = new ReceiveEvent();
         [SerializeField] internal NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();

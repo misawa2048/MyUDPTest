@@ -172,7 +172,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
     // for debug
     void OnGUI()
     {
-        MyUDPServer.ONGUISub(this.host, this.myIP, m_plInfoList);
+        MyUDPServer.ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList);
     }
 
     static public float GetDiffAngleY(float _angY0, float _angY1) {

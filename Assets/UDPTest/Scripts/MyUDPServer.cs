@@ -97,7 +97,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     // for debug
     void OnGUI()
     {
-        MyUDPServer.ONGUISub(this.host, this.myIP, m_plInfoList);
+        MyUDPServer.ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList);
     }
 
     static public bool OnAddClientSub(string[] _dataArr, List<MyClientInfo> _infoList, GameObject _makerPrefab, Transform _parent=null)
@@ -234,7 +234,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    static public void ONGUISub(string _host, string _myIP, List<MyClientInfo> _infoList)
+    static public void ONGUISub(string _host, int _hSendPort, int _hRecvPort, string _myIP, List<MyClientInfo> _infoList)
     {
         GUIStyle customGuiStyle = new GUIStyle();
         customGuiStyle.fontSize = 32;
@@ -243,6 +243,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         GUILayout.BeginArea(new Rect(Screen.width - 310, 0, 300, Screen.height));
         GUILayout.BeginVertical();
         GUILayout.TextArea("host:" + _host, customGuiStyle);
+        GUILayout.TextArea("S:" + _hSendPort + " R:"+ _hRecvPort, customGuiStyle);
         GUILayout.TextArea("myIP:" + _myIP, customGuiStyle);
         foreach (MyClientInfo info in _infoList)
         {
