@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MyUDPServer : TmUDP.TmUDPServer
 {
     //public static readonly string KWD_QUIT = TmUDP.TmUDPClient.KWD_QUIT;
-    public static readonly string KWD_POS = "Pos";
-    public static readonly string KWD_ANGY = "AngY";
-    public static readonly string KWD_QUAT = "Quat";
+    public static readonly string KWD_POS = "Pos";   // [3]"KWD_POS, x,y,z"
+    public static readonly string KWD_ANGY = "AngY"; // [1]"KWD_ANGY,y"
+    public static readonly string KWD_QUAT = "Quat"; // [4]"KWD_QUAT,x,y,z,w"
+    // MyUDPServer extend below
+    public static readonly string KWDEX_OBJ = "Obj";   // [9]"KWD_OBJ,modelName, countModel, x,y,z,x,y,z,w" 
 
     [System.Serializable]
     public class MyClientInfo
@@ -31,12 +34,20 @@ public class MyUDPServer : TmUDP.TmUDPServer
         public LinqSch(int _idx=0, string _dat=""){ index = _idx; data = _dat; }
     }
 
+#if false // do nothing on server
+    [SerializeField, ReadOnlyWhenPlaying] TmUDP.ObjPrefabArrScrObj m_prefabInfo=null;
+#endif
     [SerializeField,ReadOnly] List<MyClientInfo> m_plInfoList = null;
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
 
     // Start is called before the first frame update
     public override void Start()
     {
+        if (MyUDPClient.USE_PLAYERPREFS && PlayerPrefs.HasKey(MyUDPClient.PREFS_KEY_HSEND_PORT))
+            this.m_sendPort = PlayerPrefs.GetInt(MyUDPClient.PREFS_KEY_HSEND_PORT);
+        if (MyUDPClient.USE_PLAYERPREFS && PlayerPrefs.HasKey(MyUDPClient.PREFS_KEY_HRECV_PORT))
+            this.m_receivePort = PlayerPrefs.GetInt(MyUDPClient.PREFS_KEY_HRECV_PORT);
+
         base.Start();
         // do anything here
         m_plInfoList = new List<MyClientInfo>();
@@ -61,7 +72,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
             {
                 Vector3 pos = Vector3.zero;
                 bool isInit = false;
-                bool result = TryGetPosFromData(dataArr, out pos, out isInit);
+                bool result;
+                result = TryGetPosFromData(dataArr, out pos, out isInit);
                 if (result)
                 {
                     info.pos = pos;
@@ -73,6 +85,26 @@ public class MyUDPServer : TmUDP.TmUDPServer
                 {
                     info.obj.transform.localRotation = rot;
                 }
+#if false // do nothing on server
+                string objName = "";
+                int count = 0;
+                result = TryGetObjectNameFromData(dataArr, out objName, out count, out pos, out rot);
+                if (result)
+                {
+                    int prefabId = MyUDPServer.GetPrefabIdFromName(objName, m_prefabInfo);
+                    if ((prefabId>=0) && m_prefabInfo.m_infoArr.Length > prefabId)
+                    {   // Instantiate OBJ
+                        GameObject go = Instantiate(m_prefabInfo.m_infoArr[prefabId].prefab);
+                        go.name = m_prefabInfo.m_infoArr[prefabId].name + "_" + count+"_S";
+                        go.transform.position = pos;
+                        go.transform.rotation = rot;
+                    }
+                    else
+                    { // Instantiate Picture From URL(=objName)
+
+                    }
+                }
+#endif
             }
             Debug.Log("--MyUDPServerRecv:" + text);
         }
@@ -91,6 +123,21 @@ public class MyUDPServer : TmUDP.TmUDPServer
         if(OnRemoveClientSub(_dataArr, m_plInfoList))
         {
             Debug.Log("--MyUDPServerRemove:" + _dataArr[0].ToString());
+        }
+    }
+
+    public void OnChangePort(string _portStr)
+    {
+        string[] hostInfoStrArr = _portStr.Split(':'); // 7001:7003
+        if (hostInfoStrArr.Length > 1)
+        {
+            int hSp = this.m_sendPort;    // host's send port
+            int hRp = this.m_receivePort; // host's receive port
+            int.TryParse(hostInfoStrArr[0], out hSp);
+            int.TryParse(hostInfoStrArr[1], out hRp);
+            PlayerPrefs.SetInt(MyUDPClient.PREFS_KEY_HSEND_PORT, hSp);
+            PlayerPrefs.SetInt(MyUDPClient.PREFS_KEY_HRECV_PORT, hRp);
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 
@@ -231,6 +278,72 @@ public class MyUDPServer : TmUDP.TmUDPServer
             float.TryParse(_dataArr[index + 4], out _rot.w);
             Debug.Log("Quat=" + _rot.ToString());
         }
+        return ret;
+    }
+
+    static public bool TryGetObjectNameFromData(string[] _dataArr, out string _objName, out int _count, out Vector3 _pos, out Quaternion _rot)
+    {
+        bool ret = false;
+        _objName = "";
+        _count = 0;
+        _pos = Vector3.zero;
+        _rot = Quaternion.identity;
+
+        int index = 0;
+        try
+        {
+            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_OBJ)).Idx;
+        }
+        catch (System.Exception e) { Debug.Log(e); }
+
+        if ((index > 0) && (_dataArr.Length > index + 9))
+        { // rotY
+            ret = true;
+            _objName = _dataArr[index + 1];
+            int.TryParse(_dataArr[index + 2], out _count);
+            float.TryParse(_dataArr[index + 3], out _pos.x);
+            float.TryParse(_dataArr[index + 4], out _pos.y);
+            float.TryParse(_dataArr[index + 5], out _pos.z);
+            float.TryParse(_dataArr[index + 6], out _rot.x);
+            float.TryParse(_dataArr[index + 7], out _rot.y);
+            float.TryParse(_dataArr[index + 8], out _rot.z);
+            float.TryParse(_dataArr[index + 9], out _rot.w);
+            Debug.Log("Model=" + _objName + "_" + _count.ToString());
+        }
+        return ret;
+    }
+
+    static public GameObject GetPrefabFromName(string _modelName, TmUDP.ObjPrefabArrScrObj _prefabArr)
+    {
+        GameObject ret = null;
+        for (int i = 0; i < _prefabArr.objInfoArr.Length; ++i)
+        {
+            if (_modelName.StartsWith(_prefabArr.objInfoArr[i].name))
+            {
+                ret = _prefabArr.objInfoArr[i].prefab;
+                break;
+            }
+        }
+        return ret;
+    }
+    static public int GetPrefabIdFromName(string _modelName, TmUDP.ObjPrefabArrScrObj _prefabArr)
+    {
+        int ret = -1;
+        for(int i = 0; i < _prefabArr.objInfoArr.Length; ++i)
+        {
+            if (_modelName.StartsWith(_prefabArr.objInfoArr[i].name))
+            {
+                ret = i;
+                break;
+            }
+        }
+        return ret;
+    }
+    static public string GetNameFromPrefabId(int _prefabId, TmUDP.ObjPrefabArrScrObj _prefabArr)
+    {
+        string ret = "UNKNOWN_PREFAB";
+        if(_prefabArr.objInfoArr.Length > _prefabId)
+            ret = _prefabArr.objInfoArr[_prefabId].name;
         return ret;
     }
 

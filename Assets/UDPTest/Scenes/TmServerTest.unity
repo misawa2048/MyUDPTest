@@ -292,7 +292,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 230545083}
   m_CullTransparentMesh: 0
---- !u!1001 &415473284
+--- !u!1001 &417722953
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -342,7 +342,7 @@ PrefabInstance:
     - target: {fileID: 7179571092251666442, guid: 5468650b1fdcfcd4d99a6a04df5f056e,
         type: 3}
       propertyPath: m_RootOrder
-      value: 3
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 7179571092251666442, guid: 5468650b1fdcfcd4d99a6a04df5f056e,
         type: 3}
@@ -650,10 +650,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6934d700f4428e489afa0f2c756ff9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_client: {fileID: 0}
   m_targetTr: {fileID: 1643924642}
   m_cameraPivotTr: {fileID: 0}
   m_targetCamera: {fileID: 0}
   m_moveSped: {x: 180, y: 6, z: 5}
+  m_imageURL: https://raw.githubusercontent.com/misawa2048/MyUDPTest/master/img/clientInspector.png
 --- !u!1 &572745921
 GameObject:
   m_ObjectHideFlags: 0
@@ -958,7 +960,7 @@ PrefabInstance:
     - target: {fileID: 6122758395975274109, guid: a053f343128923c44a02c75d7ef8d9aa,
         type: 3}
       propertyPath: m_RootOrder
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 6122758395975274109, guid: a053f343128923c44a02c75d7ef8d9aa,
         type: 3}
@@ -2341,7 +2343,6 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   m_clientList: []
-  m_plInfoList: []
   m_clientMarkerPrefab: {fileID: 3436943323470778168, guid: a053f343128923c44a02c75d7ef8d9aa,
     type: 3}
   m_settings:
@@ -2349,6 +2350,8 @@ MonoBehaviour:
     minAngY: 5
     reloadTime: 0.2
     parentTr: {fileID: 0}
+  m_prefabInfo: {fileID: 0}
+  m_plInfoList: []
 --- !u!4 &2105860775
 Transform:
   m_ObjectHideFlags: 0

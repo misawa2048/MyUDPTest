@@ -4,15 +4,21 @@ using UnityEngine;
 
 public class PlayerCtrlWithButton : MonoBehaviour
 {
+    [SerializeField] MyUDPClient m_client = null;
     [SerializeField] Transform m_targetTr = null;
     [SerializeField] Transform m_cameraPivotTr = null;
     [SerializeField] Camera m_targetCamera = null;
     [SerializeField,Tooltip("L/R,Jump,and F/W")] Vector3 m_moveSped = new Vector3(100f, 5f, 5f);
+    [SerializeField] string m_imageURL = "https://raw.githubusercontent.com/misawa2048/MyUDPTest/master/img/clientInspector.png";
     Rigidbody m_rigidbody = null;
     Vector3 m_speed;
     // Start is called before the first frame update
     void Start()
     {
+        if (m_targetTr == null)
+        {
+            m_targetTr = m_client.transform;
+        }
         m_rigidbody = m_targetTr.GetComponentInChildren<Rigidbody>();
         CapsuleCollider coll = m_targetTr.GetComponent<CapsuleCollider>();
         m_rigidbody.centerOfMass = coll.center;
@@ -87,5 +93,15 @@ public class PlayerCtrlWithButton : MonoBehaviour
     {
         m_speed.y = 1f;
         Debug.Log("OnJumpButtonClick");
+    }
+    public void OnOBJButtonClick()
+    {
+        m_client.OnAddGameObject("GO1");
+        Debug.Log("OnOBJButtonClick");
+    }
+    public void OnImgButtonClick()
+    {
+        m_client.OnAddImage(m_imageURL);
+        Debug.Log("OnImgButtonClick");
     }
 }

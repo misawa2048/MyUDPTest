@@ -730,6 +730,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6934d700f4428e489afa0f2c756ff9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_client: {fileID: 0}
   m_targetTr: {fileID: 8445729054177940596}
   m_cameraPivotTr: {fileID: 2435648610792448600}
   m_targetCamera: {fileID: 0}
@@ -904,13 +905,16 @@ MonoBehaviour:
           m_BoolArgument: 0
         m_CallState: 2
   m_clientList: []
-  m_plInfoList: []
   m_clientMarkerPrefab: {fileID: 3436943323470778168, guid: a053f343128923c44a02c75d7ef8d9aa,
     type: 3}
   m_settings:
     minDist: 0.5
     minAngY: 5
     reloadTime: 0.2
+    parentTr: {fileID: 0}
+  m_objInfoArr: []
+  m_prefabInfo: {fileID: 11400000, guid: 58cd5e6a947729f41854d5e5e82cc44b, type: 2}
+  m_plInfoList: []
 --- !u!1 &2435648610790683918
 GameObject:
   m_ObjectHideFlags: 0

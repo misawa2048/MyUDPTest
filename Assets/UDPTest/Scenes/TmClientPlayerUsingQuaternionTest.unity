@@ -467,36 +467,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerUDPClientUsingQuaternion
       objectReference: {fileID: 0}
-    - target: {fileID: 1311457196293701693, guid: 7566e279238febd429131bcf8d57e998,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2039122795355454196, guid: 7566e279238febd429131bcf8d57e998,
-        type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 2100000, guid: 4c4578cfc58194f4c9dc4df46ccd619b, type: 2}
-    - target: {fileID: 4431897042578587469, guid: 7566e279238febd429131bcf8d57e998,
-        type: 3}
-      propertyPath: m_Text
-      value: Change HostIP:HSend:HRecv
-      objectReference: {fileID: 0}
-    - target: {fileID: 4431897042802131267, guid: 7566e279238febd429131bcf8d57e998,
-        type: 3}
-      propertyPath: m_SizeDelta.x
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: 4431897042802131267, guid: 7566e279238febd429131bcf8d57e998,
-        type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: 220
-      objectReference: {fileID: 0}
-    - target: {fileID: 4431897042802131267, guid: 7566e279238febd429131bcf8d57e998,
-        type: 3}
-      propertyPath: m_AnchoredPosition.y
-      value: -60
-      objectReference: {fileID: 0}
     - target: {fileID: 7600152795830976888, guid: 7566e279238febd429131bcf8d57e998,
         type: 3}
       propertyPath: m_LocalPosition.x

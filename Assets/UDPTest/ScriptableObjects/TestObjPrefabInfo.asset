@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 547b8eacc4ad27c48b902b25776e806e, type: 3}
+  m_Name: TestObjPrefabInfo
+  m_EditorClassIdentifier: 
+  photoPrefabInfo:
+    name: PHOTO0
+    prefab: {fileID: 0}
+  objInfoArr:
+  - name: GO0
+    prefab: {fileID: 445435720904638968, guid: e0f26f9c5e4fd574b917478b51dedd47, type: 3}
+  - name: GO1
+    prefab: {fileID: 2180416888824780636, guid: ba8aa97aedfa0724ca87162dec6ee318,
+      type: 3}
+  - name: GO2
+    prefab: {fileID: 8786669909923220968, guid: 576e912319338b64596d4d8dbf8687a7,
+      type: 3}
