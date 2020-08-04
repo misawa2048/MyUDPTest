@@ -195,7 +195,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         {   // Instantiate OBJ
             GameObject go = Instantiate(m_prefabInfo.objInfoArr[prefabId].prefab);
             go.name = m_prefabInfo.objInfoArr[prefabId].name + "_" + m_modelCount;
-            go.transform.position = transform.position;
+            go.transform.position = transform.position + transform.forward*1f;
             go.transform.rotation = transform.rotation;
 
             string str = GetDataStrFromObjName(this.myIP, _objName, m_modelCount, transform.position, transform.rotation, m_prefabInfo);
