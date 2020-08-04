@@ -23,8 +23,8 @@ namespace TmUDP
         public string myIP { get { return m_myIP; } }
         [SerializeField, ReadOnlyWhenPlaying] internal string m_host = "localhost"; // m_isServer && "" > bloadcast
         public string host { get { return m_host; } }
-        [SerializeField, ReadOnlyWhenPlaying] internal int m_sendPort = 7001;
-        [SerializeField, ReadOnlyWhenPlaying] internal int m_receivePort = 7003;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_sendPort = 8001;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_receivePort = 8003;
         public int sendPort { get { return m_sendPort; } }
         public int receivePort { get { return m_receivePort; } }
         [SerializeField, ReadOnlyWhenPlaying] internal int m_receiveTimeout = 1000;
@@ -44,6 +44,7 @@ namespace TmUDP
         // Start is called before the first frame update
         public virtual void Start()
         {
+            setPortFromCommandLineArgs();
             m_sendUdp = null;
             m_receiveUdp = null;
             m_thread = null;
@@ -389,6 +390,28 @@ namespace TmUDP
 #endif
         }
 
+        internal void setPortFromCommandLineArgs()
+        {
+            var args = System.Environment.GetCommandLineArgs();
+            for (var i = 0; i < args.Length; i++)
+            {
+                if (args[i].StartsWith("-sendPort="))
+                    m_sendPort = getPort(args[i], m_sendPort);
+
+                if (args[i].StartsWith("-receivePort="))
+                    m_receivePort = getPort(args[i], m_receivePort);
+            }
+            Debug.Log("sendPort:" + m_sendPort.ToString()+ " recvPort:" + m_receivePort.ToString());
+        }
+        int getPort(string _paramStr, int _defaultPort)
+        {
+            int ret = _defaultPort;
+            string[] strArr = _paramStr.Split('=');
+            if (strArr.Length >= 2){
+                int.TryParse(strArr[1], out ret);
+            }
+            return ret;
+        }
 
         internal static string Vector3ToFormatedStr(Vector3 _vec, int _numDecimalPoint)
         {
