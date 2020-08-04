@@ -8,7 +8,7 @@ HOW TO USE
   ![build client](img/buildClient.png)  
 - Run server  
   The server port can be changed from the command line  
-  MyUDPTest.exe -sendPort=8001 -receivePort=8003  
+  >MyUDPTest.exe -sendPort=8001 -receivePort=8003  
 - Run client  
 - change server IP on client same as server  
   ![server IP](img/serverIP.png)  
