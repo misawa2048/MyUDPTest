@@ -38,8 +38,11 @@ namespace TmUDP
         internal Thread m_thread;
         internal bool m_isReceiving;
         internal List<byte[]> m_thRecvList=null;
-        internal List<string> m_thAaddedClientList = null;
+        internal List<string> m_thAddedClientList = null;
         internal List<string> m_thRemovedClientList = null;
+        internal byte[][] m_recvArr = null;
+        internal string[] m_addedClientArr = null;
+        internal string[] m_removedClientArr = null;
 
         // Start is called before the first frame update
         public virtual void Start()
@@ -53,7 +56,7 @@ namespace TmUDP
             m_clientList = new List<string>();
             //--lock
             m_thRecvList = new List<byte[]>();
-            m_thAaddedClientList = new List<string>();
+            m_thAddedClientList = new List<string>();
             m_thRemovedClientList = new List<string>();
             //--!lock
             udpStart();
@@ -73,36 +76,40 @@ namespace TmUDP
 
             lock (m_thread)
             { // m_thread.lock
-                foreach (string dataStr in m_thAaddedClientList)
-                {
-                    string[] dataArr = dataStr.Split(',');
-                    string ipStr = dataArr[0];
-                    if (!m_clientList.Contains(ipStr))
-                    {
-                        m_onAddClientEvnts.Invoke(dataArr);
-                        m_clientList.Add(ipStr);
-                    }
-                }
-                m_thAaddedClientList.Clear();
-
-                foreach (byte[] data in m_thRecvList)
-                {
-                    m_onReceiveEvnts.Invoke(data);
-                }
+                m_addedClientArr = m_thAddedClientList.ToArray();
+                m_thAddedClientList.Clear();
+                m_recvArr = m_thRecvList.ToArray();
                 m_thRecvList.Clear();
-
-                foreach (string dataStr in m_thRemovedClientList)
-                {
-                    string[] dataArr = dataStr.Split(',');
-                    string ipStr = dataArr[0];
-                    if (m_clientList.Contains(ipStr))
-                    {
-                        m_onRemoveClientEvnts.Invoke(dataArr);
-                        m_clientList.Remove(ipStr);
-                    }
-                }
+                m_removedClientArr = m_thRemovedClientList.ToArray();
                 m_thRemovedClientList.Clear();
             } // m_thread.resume
+
+            foreach (string dataStr in m_addedClientArr)
+            {
+                string[] dataArr = dataStr.Split(',');
+                string ipStr = dataArr[0];
+                if (!m_clientList.Contains(ipStr))
+                {
+                    m_onAddClientEvnts.Invoke(dataArr);
+                    m_clientList.Add(ipStr);
+                }
+            }
+
+            foreach (byte[] data in m_recvArr)
+            {
+                m_onReceiveEvnts.Invoke(data);
+            }
+
+            foreach (string dataStr in m_removedClientArr)
+            {
+                string[] dataArr = dataStr.Split(',');
+                string ipStr = dataArr[0];
+                if (m_clientList.Contains(ipStr))
+                {
+                    m_onRemoveClientEvnts.Invoke(dataArr);
+                    m_clientList.Remove(ipStr);
+                }
+            }
         }
 
         internal virtual void OnApplicationQuit()
@@ -221,7 +228,7 @@ namespace TmUDP
                 {
                     if (!m_clientList.Contains(dataArr[0]))
                     {
-                        m_thAaddedClientList.Add(_text);
+                        m_thAddedClientList.Add(_text);
                     }
                 }
 

@@ -9,7 +9,7 @@ public class PlayerCtrlWithButton : MonoBehaviour
     [SerializeField] Transform m_cameraPivotTr = null;
     [SerializeField] Camera m_targetCamera = null;
     [SerializeField,Tooltip("L/R,Jump,and F/W")] Vector3 m_moveSped = new Vector3(100f, 5f, 5f);
-    [SerializeField] string m_imageURL = "https://raw.githubusercontent.com/misawa2048/MyUDPTest/master/img/clientInspector.png";
+    //[SerializeField] string m_imageURL = "https://raw.githubusercontent.com/misawa2048/MyUDPTest/master/img/clientInspector.png";
     Rigidbody m_rigidbody = null;
     Vector3 m_speed;
     // Start is called before the first frame update
@@ -98,10 +98,5 @@ public class PlayerCtrlWithButton : MonoBehaviour
     {
         m_client.OnAddGameObject("GO1");
         Debug.Log("OnOBJButtonClick");
-    }
-    public void OnImgButtonClick()
-    {
-        m_client.OnAddImage(m_imageURL);
-        Debug.Log("OnImgButtonClick");
     }
 }

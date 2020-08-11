@@ -12,6 +12,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     public static readonly string KWD_QUAT = "Quat"; // [4]"KWD_QUAT,x,y,z,w"
     // MyUDPServer extend below
     public static readonly string KWDEX_OBJ = "Obj";   // [9]"KWD_OBJ,modelName, countModel, x,y,z,x,y,z,w" 
+    public static readonly string KWDEX_REMOVEOBJ = "RemoveObj";   // [2]"KWDEX_REMOVEOBJ,modelName, countModel" 
 
     [System.Serializable]
     public class MyClientInfo
@@ -309,6 +310,29 @@ public class MyUDPServer : TmUDP.TmUDPServer
             float.TryParse(_dataArr[index + 8], out _rot.z);
             float.TryParse(_dataArr[index + 9], out _rot.w);
             Debug.Log("Model=" + _objName + "_" + _count.ToString());
+        }
+        return ret;
+    }
+
+    static public bool TryGetRemoveObjectFromData(string[] _dataArr, out string _objName, out int _count)
+    {
+        bool ret = false;
+        _objName = "";
+        _count = 0;
+
+        int index = 0;
+        try
+        {
+            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_REMOVEOBJ)).Idx;
+        }
+        catch (System.Exception e) { Debug.Log(e); }
+
+        if ((index > 0) && (_dataArr.Length > index + 2))
+        {
+            ret = true;
+            _objName = _dataArr[index + 1];
+            int.TryParse(_dataArr[index + 2], out _count);
+            Debug.Log("RemoveModel=" + _objName + "_" + _count.ToString());
         }
         return ret;
     }
