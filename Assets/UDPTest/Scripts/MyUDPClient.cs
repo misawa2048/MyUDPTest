@@ -49,6 +49,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
     Quaternion m_previousRot;
     float m_reloadTimer;
     int m_modelCount; // increment when create gameObject from prefab 
+    public int modelCount { get { return m_modelCount; } }
 
     //public void SetPosition(Vector3 _pos) { transform.position = _pos; }
     //public void SetAngleY(float _angY) { transform.rotation = Quaternion.AngleAxis(_angY,Vector3.up); }
@@ -153,23 +154,12 @@ public class MyUDPClient : TmUDP.TmUDPClient
                             MyAddedObjInfo existInfo = getInfoFromInfo(ipStr, objName, count);
                             if (existInfo != null)
                             {
-#if false // add
-                                xDemo.GrabbableModel gm = existInfo.gameObject.GetComponent<xDemo.GrabbableModel>();
-                                if (gm != null)
-                                    gm.SetStartPosition(pos, rot);
-                                else
-#endif
                                     existInfo.gameObject.transform.SetPositionAndRotation(pos,rot);
                             }
                         }
                         else
                         { // add to list
                             GameObject go = InstantiateAndAddGameObject(ipStr, objName, count, pos, rot, suffix);
-#if false // add
-                            xDemo.CapturedPhotoOne cpo = go.GetComponent<xDemo.CapturedPhotoOne>();
-                            if (suffix!="" && cpo != null)
-                                cpo.SetPictureFromURL(suffix);
-#endif
                         }
                     }
 

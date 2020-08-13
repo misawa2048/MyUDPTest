@@ -52,7 +52,6 @@ namespace TmUDP
             m_receiveUdp = null;
             m_thread = null;
             m_myIP = TmUDPClient.GetIP();
-            m_isReceiving = true;
             m_clientList = new List<string>();
             //--lock
             m_thRecvList = new List<byte[]>();
@@ -128,8 +127,8 @@ namespace TmUDP
             if (isPpause)
             {
                 udpStop();
-                Application.runInBackground = false;
-                Application.Quit();
+            }else{
+                udpStart();
             }
 #endif
         }
@@ -178,6 +177,7 @@ namespace TmUDP
                 m_thread = new Thread(new ThreadStart(ThreadMethod));
                 m_thread.Start();
             }
+            m_isReceiving = true;
         }
 
         private void udpStop()
