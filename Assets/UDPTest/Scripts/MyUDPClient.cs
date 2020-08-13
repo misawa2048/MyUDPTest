@@ -267,12 +267,12 @@ public class MyUDPClient : TmUDP.TmUDPClient
     public void OnRemoveGameObject(GameObject _go)
     {
         MyAddedObjInfo info = getInfoFromGameObject(_go);
+        Destroy(_go);
         if (info != null)
         {
             string valStr = info.objName + "," + info.modelCount.ToString() + ",";
             this.SendDataFromDataStr(info.ip + "," + MyUDPServer.KWDEX_REMOVEOBJ + "," + valStr);
             m_AddedObjList.Remove(info);
-            Destroy(_go);
         }
     }
 
