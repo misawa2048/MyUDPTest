@@ -26,13 +26,15 @@ public class MyUDPClient : TmUDP.TmUDPClient
         [Tooltip("IP addres")] public string ip = "";
         [Tooltip("object Name")] public string objName = "";
         [Tooltip("model count")] public int modelCount = 0;
+        [Tooltip("some parameters")] public string suffix = "";
 
-        public MyAddedObjInfo(GameObject _go, string _ip, string _objName, int _modelCount)
+        public MyAddedObjInfo(GameObject _go, string _ip, string _objName, int _modelCount, string _suffix)
         {
             gameObject = _go;
             ip = _ip;
             objName = _objName;
             modelCount = _modelCount;
+            suffix = _suffix;
         }
 
     }
@@ -141,8 +143,9 @@ public class MyUDPClient : TmUDP.TmUDPClient
                     }
 
                     string objName = "";
+                    string suffix = "";
                     int count = 0;
-                    bool objResult = MyUDPServer.TryGetObjectNameFromData(dataArr, out objName, out count, out pos, out rot);
+                    bool objResult = MyUDPServer.TryGetObjectNameFromData(dataArr, out objName, out count, out pos, out rot, out suffix);
                     if (objResult)
                     {
                         if(HasGameObjectInAddedList(ipStr, objName, count))
@@ -150,12 +153,23 @@ public class MyUDPClient : TmUDP.TmUDPClient
                             MyAddedObjInfo existInfo = getInfoFromInfo(ipStr, objName, count);
                             if (existInfo != null)
                             {
-                                existInfo.gameObject.transform.SetPositionAndRotation(pos,rot);
+#if false // add
+                                xDemo.GrabbableModel gm = existInfo.gameObject.GetComponent<xDemo.GrabbableModel>();
+                                if (gm != null)
+                                    gm.SetStartPosition(pos, rot);
+                                else
+#endif
+                                    existInfo.gameObject.transform.SetPositionAndRotation(pos,rot);
                             }
                         }
                         else
                         { // add to list
-                            InstantiateAndAddGameObject(ipStr, objName, count, pos, rot);
+                            GameObject go = InstantiateAndAddGameObject(ipStr, objName, count, pos, rot, suffix);
+#if false // add
+                            xDemo.CapturedPhotoOne cpo = go.GetComponent<xDemo.CapturedPhotoOne>();
+                            if (suffix!="" && cpo != null)
+                                cpo.SetPictureFromURL(suffix);
+#endif
                         }
                     }
 
@@ -231,30 +245,31 @@ public class MyUDPClient : TmUDP.TmUDPClient
 
     public void OnAddGameObject(string _objName)
     {
-        AddGameObject(_objName);
+        AddGameObject(_objName,"");
     }
-    public GameObject AddGameObject(string _objName)
+    public GameObject AddGameObject(string _objName,string _suffix)
     {
-        GameObject go = InstantiateAndAddGameObject(this.myIP, _objName, m_modelCount, transform.position+transform.forward*1f, transform.rotation);
+        GameObject go = InstantiateAndAddGameObject(this.myIP, _objName, m_modelCount, transform.position+transform.forward*1f, transform.rotation, _suffix);
         if (go!=null)
         {
-            string str = GetDataStrFromObjName(this.myIP, _objName, m_modelCount, transform.position, transform.rotation);
+            string str = GetDataStrFromObjName(this.myIP, _objName, m_modelCount, transform.position, transform.rotation, _suffix);
             this.SendDataFromDataStr(str);
             m_modelCount++; // increment when create gameObject from prefab 
         }
         return go;
     }
 
-    public GameObject InstantiateAndAddGameObject(string _ipStr, string _objName, int _count, Vector3 _pos, Quaternion _rot)
+    public GameObject InstantiateAndAddGameObject(string _ipStr, string _objName, int _count, Vector3 _pos, Quaternion _rot, string _suffix)
     {
         GameObject go = null;
         int prefabId = MyUDPServer.GetPrefabIdFromName(_objName, m_prefabInfo);
         if ((prefabId >= 0) && m_prefabInfo.objInfoArr.Length > prefabId)
         {   // Instantiate OBJ
             go = Instantiate(m_prefabInfo.objInfoArr[prefabId].prefab, _pos, _rot);
-            go.name = m_prefabInfo.objInfoArr[prefabId].name + "_" + _count;
+            go.name = _ipStr + "_" + m_prefabInfo.objInfoArr[prefabId].name + "_" + _count;
+            go.name += (_suffix != "") ? "_" + _suffix : "";
 
-            m_AddedObjList.Add(new MyAddedObjInfo(go, _ipStr, _objName, _count));
+            m_AddedObjList.Add(new MyAddedObjInfo(go, _ipStr, _objName, _count, _suffix));
         }
         return go;
     }
@@ -284,7 +299,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         MyAddedObjInfo info = getInfoFromGameObject(_go);
         if (info != null)
         {
-            string str = GetDataStrFromObjName(this.myIP, info.objName, info.modelCount, _go.transform.position, _go.transform.rotation);
+            string str = GetDataStrFromObjName(this.myIP, info.objName, info.modelCount, _go.transform.position, _go.transform.rotation,"");
             this.SendDataFromDataStr(str);
         }
     }
@@ -350,12 +365,12 @@ public class MyUDPClient : TmUDP.TmUDPClient
     }
 
 
-    static public string GetDataStrFromObjName(string _ip, string _objName, int _countModel, Vector3 _pos, Quaternion _rot)
+    static public string GetDataStrFromObjName(string _ip, string _objName, int _countModel, Vector3 _pos, Quaternion _rot, string _suffix)
     {
         string valStr = _objName + "," + _countModel.ToString() + ",";
         valStr += TmUDP.TmUDPClient.Vector3ToFormatedStr(_pos, 2) + ",";
         valStr += TmUDP.TmUDPClient.QuaternionToFormatedStr(_rot, 2);
-        return _ip + "," + MyUDPServer.KWDEX_OBJ + "," + valStr;
+        return _ip + "," + MyUDPServer.KWDEX_OBJ + "," + valStr + "," +_suffix;
     }
 
     IEnumerator setImageCo(MyAddedObjInfo _info, string _url)

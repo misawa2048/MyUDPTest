@@ -11,7 +11,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     public static readonly string KWD_ANGY = "AngY"; // [1]"KWD_ANGY,y"
     public static readonly string KWD_QUAT = "Quat"; // [4]"KWD_QUAT,x,y,z,w"
     // MyUDPServer extend below
-    public static readonly string KWDEX_OBJ = "Obj";   // [9]"KWD_OBJ,modelName, countModel, x,y,z,x,y,z,w" 
+    public static readonly string KWDEX_OBJ = "Obj";   // [10]"KWD_OBJ,modelName, countModel, x,y,z,x,y,z,w,suffix" 
     public static readonly string KWDEX_REMOVEOBJ = "RemoveObj";   // [2]"KWDEX_REMOVEOBJ,modelName, countModel" 
 
     [System.Serializable]
@@ -282,13 +282,14 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
-    static public bool TryGetObjectNameFromData(string[] _dataArr, out string _objName, out int _count, out Vector3 _pos, out Quaternion _rot)
+    static public bool TryGetObjectNameFromData(string[] _dataArr, out string _objName, out int _count, out Vector3 _pos, out Quaternion _rot, out string _suffix)
     {
         bool ret = false;
         _objName = "";
         _count = 0;
         _pos = Vector3.zero;
         _rot = Quaternion.identity;
+        _suffix = "";
 
         int index = 0;
         try
@@ -297,7 +298,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         }
         catch (System.Exception e) { Debug.Log(e); }
 
-        if ((index > 0) && (_dataArr.Length > index + 9))
+        if ((index > 0) && (_dataArr.Length > index + 10))
         { // rotY
             ret = true;
             _objName = _dataArr[index + 1];
@@ -309,7 +310,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
             float.TryParse(_dataArr[index + 7], out _rot.y);
             float.TryParse(_dataArr[index + 8], out _rot.z);
             float.TryParse(_dataArr[index + 9], out _rot.w);
-            Debug.Log("Model=" + _objName + "_" + _count.ToString());
+            _suffix = _dataArr[index + 10];
+            Debug.Log("Model=" + _objName + "_" + _count.ToString() + " " + _suffix);
         }
         return ret;
     }
