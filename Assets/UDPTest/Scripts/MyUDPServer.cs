@@ -198,6 +198,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         bool isInit = false;
         bool result = TryGetPosFromData(_dataArr, out pos, out isInit);
         GameObject go = Instantiate(_prefab, pos, Quaternion.identity);
+        go.name = _prefab.name + "_" + _dataArr[0]; // name_uuip
         go.transform.SetParent(_parent);
         MyClientInfo info = new MyClientInfo(_dataArr[0], go, pos);
         return info;
@@ -379,7 +380,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         customGuiStyle.fontSize = 32;
         customGuiStyle.alignment = TextAnchor.UpperRight;
         customGuiStyle.normal.textColor = Color.black;
-        GUILayout.BeginArea(new Rect(Screen.width - 310, 0, 300, Screen.height));
+        GUILayout.BeginArea(new Rect(Screen.width - 310, 20, 300, Screen.height-20));
         GUILayout.BeginVertical();
         GUILayout.TextArea("host:" + _host, customGuiStyle);
         GUILayout.TextArea("S:" + _hSendPort + " R:"+ _hRecvPort, customGuiStyle);

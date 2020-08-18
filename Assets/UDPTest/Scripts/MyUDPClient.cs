@@ -27,14 +27,18 @@ public class MyUDPClient : TmUDP.TmUDPClient
         [Tooltip("object Name")] public string objName = "";
         [Tooltip("model count")] public int modelCount = 0;
         [Tooltip("some parameters")] public string suffix = "";
+        [Tooltip("position")] public Vector3 pos = Vector3.zero;
+        [Tooltip("rotation")] public Quaternion rot = Quaternion.identity;
 
-        public MyAddedObjInfo(GameObject _go, string _ip, string _objName, int _modelCount, string _suffix)
+        public MyAddedObjInfo(GameObject _go, string _ip, string _objName, int _modelCount, string _suffix, Vector3 _pos, Quaternion _rot)
         {
             gameObject = _go;
             ip = _ip;
             objName = _objName;
             modelCount = _modelCount;
             suffix = _suffix;
+            pos = _pos;
+            rot = _rot;
         }
 
     }
@@ -154,7 +158,9 @@ public class MyUDPClient : TmUDP.TmUDPClient
                             MyAddedObjInfo existInfo = getInfoFromInfo(ipStr, objName, count);
                             if (existInfo != null)
                             {
-                                    existInfo.gameObject.transform.SetPositionAndRotation(pos,rot);
+                                existInfo.gameObject.transform.SetPositionAndRotation(pos,rot);
+                                existInfo.pos = pos;
+                                existInfo.rot = rot;
                             }
                         }
                         else
@@ -243,8 +249,15 @@ public class MyUDPClient : TmUDP.TmUDPClient
         if (go!=null)
         {
             string str = GetDataStrFromObjName(this.myIP, _objName, m_modelCount, transform.position, transform.rotation, _suffix);
-            this.SendDataFromDataStr(str);
-            m_modelCount++; // increment when create gameObject from prefab 
+            try
+            {
+                this.SendDataFromDataStr(str);
+                m_modelCount++; // increment when create gameObject from prefab 
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log(e.ToString());
+            }
         }
         return go;
     }
@@ -259,7 +272,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
             go.name = _ipStr + "_" + m_prefabInfo.objInfoArr[prefabId].name + "_" + _count;
             go.name += (_suffix != "") ? "_" + _suffix : "";
 
-            m_AddedObjList.Add(new MyAddedObjInfo(go, _ipStr, _objName, _count, _suffix));
+            m_AddedObjList.Add(new MyAddedObjInfo(go, _ipStr, _objName, _count, _suffix, _pos, _rot));
         }
         return go;
     }
