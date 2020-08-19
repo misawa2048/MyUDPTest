@@ -13,6 +13,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
     // MyUDPServer extend below
     public static readonly string KWDEX_OBJ = "Obj";   // [10]"KWD_OBJ,modelName, countModel, x,y,z,x,y,z,w,suffix" 
     public static readonly string KWDEX_REMOVEOBJ = "RemoveObj";   // [2]"KWDEX_REMOVEOBJ,modelName, countModel" 
+    public static readonly string KWDEX_REQUESTOBJARR = "RequestObjArr";   // [1]"KWDEX_GETOBJARRAY,maxNum" 
+    public static readonly string KWDEX_OBJARRAY = "ObjArray";   // [1]"KWDEX_GETOBJARRAY,jsonStr" 
 
     [System.Serializable]
     public class MyClientInfo
@@ -28,6 +30,90 @@ public class MyUDPServer : TmUDP.TmUDPServer
         }
     }
 
+    [System.Serializable]
+    public class MyAddedObjInfo
+    {
+        [Tooltip("Added GameObject")] public GameObject gameObject = null;
+        [Tooltip("IP addres")] public string ip = "";
+        [Tooltip("object Name")] public string objName = "";
+        [Tooltip("model count")] public int modelCount = 0;
+        [Tooltip("some parameters")] public string suffix = "";
+        [Tooltip("position")] public Vector3 pos = Vector3.zero;
+        [Tooltip("rotation")] public Quaternion rot = Quaternion.identity;
+
+        public MyAddedObjInfo(GameObject _go, string _ip, string _objName, int _modelCount, string _suffix, Vector3 _pos, Quaternion _rot)
+        {
+            gameObject = _go;
+            ip = _ip;
+            objName = _objName;
+            modelCount = _modelCount;
+            suffix = _suffix;
+            pos = _pos;
+            rot = _rot;
+        }
+        public void SetPositionAndRotation(Vector3 _pos, Quaternion _rot)
+        {
+            pos = _pos;
+            rot = _rot;
+        }
+    }
+
+    [System.Serializable]
+    public class MyAddedObjInfoForJson
+    {
+        [Tooltip("IP addres for JSON")] public string id = "";
+        [Tooltip("suffix for JSON")] public string image_url = "";
+        [Tooltip("image rotation")] public int rotation = 0;
+        [Tooltip("positionX for JSON")] public float x = 0f;
+        [Tooltip("positionY for JSON")] public float y = 0f;
+        [Tooltip("positionZ for JSON")] public float z = 0f;
+        [Tooltip("rotationX for JSON")] public float q_x = 0f;
+        [Tooltip("rotationY for JSON")] public float q_y = 0f;
+        [Tooltip("rotationZ for JSON")] public float q_z = 0f;
+        [Tooltip("rotationW for JSON")] public float q_w = 0f;
+        [Tooltip("model count for JSON")] public int countModel = 0;
+        [Tooltip("object Name for JSON")] public string objName = "";
+        [Tooltip("size of Data")] public int sizeData = 0;
+
+        public MyAddedObjInfoForJson(MyAddedObjInfo _info)
+        {
+            id = _info.ip;
+            image_url = _info.suffix;
+            rotation = 0;
+            x = _info.pos.x;
+            y = _info.pos.y;
+            z = _info.pos.z;
+            q_x = _info.rot.x;
+            q_y = _info.rot.y;
+            q_z = _info.rot.z;
+            q_w = _info.rot.w;
+            countModel = _info.modelCount;
+            objName = _info.objName;
+            sizeData = 0;
+        }
+    }
+    public class MyAddedObjInfoArrayForJson
+    {
+        public MyAddedObjInfoForJson[] infoArray;
+        public MyAddedObjInfo[] ToMyAddedObjInfoArray()
+        {
+            MyAddedObjInfo[] array = new MyAddedObjInfo[infoArray.Length];
+            for(int i = 0; i < infoArray.Length; ++i)
+            {
+                array[i] = new MyAddedObjInfo(
+                    null,
+                    infoArray[i].id,
+                    infoArray[i].objName,
+                    infoArray[i].countModel,
+                    infoArray[i].image_url,
+                    new Vector3(infoArray[i].x, infoArray[i].y, infoArray[i].z),
+                    new Quaternion(infoArray[i].q_x, infoArray[i].q_y, infoArray[i].q_z, infoArray[i].q_w)
+                );
+            }
+            return array;
+        }
+    }
+
     public struct LinqSch
     {
         public int index;
@@ -40,6 +126,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
 #endif
     [SerializeField,ReadOnly] List<MyClientInfo> m_plInfoList = null;
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
+    [SerializeField, ReadOnly, Tooltip("GameObjects I instantiate")] List<MyAddedObjInfo> m_AddedObjList = null;
+    public List<MyAddedObjInfo> addedObjList { get { return m_AddedObjList; } }
 
     // Start is called before the first frame update
     public override void Start()
@@ -86,26 +174,51 @@ public class MyUDPServer : TmUDP.TmUDPServer
                 {
                     info.obj.transform.localRotation = rot;
                 }
-#if false // do nothing on server
                 string objName = "";
+                string suffix = "";
                 int count = 0;
-                result = TryGetObjectNameFromData(dataArr, out objName, out count, out pos, out rot);
-                if (result)
+                bool objResult = TryGetObjectNameFromData(dataArr, out objName, out count, out pos, out rot, out suffix);
+                if (objResult)
                 {
-                    int prefabId = MyUDPServer.GetPrefabIdFromName(objName, m_prefabInfo);
-                    if ((prefabId>=0) && m_prefabInfo.m_infoArr.Length > prefabId)
-                    {   // Instantiate OBJ
-                        GameObject go = Instantiate(m_prefabInfo.m_infoArr[prefabId].prefab);
-                        go.name = m_prefabInfo.m_infoArr[prefabId].name + "_" + count+"_S";
-                        go.transform.position = pos;
-                        go.transform.rotation = rot;
+                    string ipStr = dataArr[0];
+                    if (HasAddedObjectInAddedList(m_AddedObjList, ipStr, objName, count))
+                    { // update only
+                        MyAddedObjInfo existInfo = GetInfoFromInfo(m_AddedObjList, ipStr, objName, count);
+                        if (existInfo != null)
+                            existInfo.SetPositionAndRotation(pos, rot);
                     }
                     else
-                    { // Instantiate Picture From URL(=objName)
-
+                    { // add to list
+                        m_AddedObjList.Add(new MyAddedObjInfo(null, ipStr, objName, count, suffix, pos, rot));
                     }
                 }
-#endif
+                objName = "";
+                count = 0;
+                objResult = TryGetRemoveObjectFromData(dataArr, out objName, out count);
+                if (objResult)
+                {
+                    string ipStr = dataArr[0];
+                    if (HasAddedObjectInAddedList(m_AddedObjList, ipStr, objName, count))
+                    {
+                        MyAddedObjInfo existInfo = GetInfoFromInfo(m_AddedObjList, ipStr, objName, count);
+                        if (existInfo != null)
+                            m_AddedObjList.Remove(existInfo);
+                    }
+                }
+                string jsonPartStr = ""; // stringで送って、clientで処理する
+                result = TryGetReqestAddedObjArray(dataArr, m_AddedObjList, out jsonPartStr);
+                if (result)
+                {
+                    if (jsonPartStr != "")
+                    {
+                        string outStr = "{\"infoArray\":[" + jsonPartStr.Replace(',','%') + "]}";
+                        outStr = dataArr[0] + "," + MyUDPServer.KWDEX_OBJARRAY + "," + outStr;
+                        this.SendData(System.Text.Encoding.UTF8.GetBytes(outStr));
+                    }
+                    else {
+                        Debug.Log("Json is null. nothing to do.");
+                    }
+                }
             }
             Debug.Log("--MyUDPServerRecv:" + text);
         }
@@ -145,7 +258,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     // for debug
     void OnGUI()
     {
-        MyUDPServer.ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList);
+        ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList);
     }
 
     static public bool OnAddClientSub(string[] _dataArr, List<MyClientInfo> _infoList, GameObject _makerPrefab, Transform _parent=null)
@@ -201,6 +314,25 @@ public class MyUDPServer : TmUDP.TmUDPServer
         go.name = _prefab.name + "_" + _dataArr[0]; // name_uuip
         go.transform.SetParent(_parent);
         MyClientInfo info = new MyClientInfo(_dataArr[0], go, pos);
+        return info;
+    }
+
+    static public bool HasAddedObjectInAddedList(List<MyAddedObjInfo> _list, string _ip, string _objName, int _count)
+    {
+        return _list.Any<MyAddedObjInfo>(e => (e.objName == _objName && e.modelCount == _count && e.ip == _ip));
+    }
+
+    static public MyAddedObjInfo GetInfoFromInfo(List<MyAddedObjInfo> _list, string _ip, string _objName, int _count)
+    {
+        MyAddedObjInfo info = null;
+        for (int i = 0; i < _list.Count; ++i)
+        {
+            if (_list[i].ip == _ip && _list[i].objName == _objName && _list[i].modelCount == _count)
+            {
+                info = _list[i];
+                break;
+            }
+        }
         return info;
     }
 
@@ -340,6 +472,48 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 
+    static public bool TryGetReqestAddedObjArray(string[] _dataArr, List<MyUDPServer.MyAddedObjInfo> _addedObjList, out string _jsonStr)
+    {
+        bool ret = false;
+        _jsonStr = "";
+        int index = 0;
+        try
+        {
+            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_REQUESTOBJARR)).Idx;
+        }
+        catch (System.Exception e) { Debug.Log(e); }
+
+        if ((index > 0) && (_dataArr.Length > index + 1))
+        {
+            ret = true;
+            int maxNum = 10;
+            int.TryParse(_dataArr[index + 1], out maxNum);
+            _jsonStr = GetJsonPartStrFromAddedObjList(_addedObjList, maxNum);
+        }
+        return ret;
+    }
+    static public bool TryGetAddedObjArray(string[] _dataArr, out MyAddedObjInfo[] _addedObjInfoArr)
+    {
+        bool ret = false;
+        _addedObjInfoArr = null;
+        int index = 0;
+        try
+        {
+            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_OBJARRAY)).Idx;
+        }
+        catch (System.Exception e) { Debug.Log(e); }
+
+        if ((index > 0) && (_dataArr.Length > index + 1))
+        {
+            ret = true;
+            string jsonStr = _dataArr[index + 1].Replace('%', ',');
+            Debug.Log("jsonStr=" + jsonStr);
+            MyAddedObjInfoArrayForJson tmpOut = JsonUtility.FromJson<MyUDPServer.MyAddedObjInfoArrayForJson>(jsonStr);
+            _addedObjInfoArr = tmpOut.ToMyAddedObjInfoArray();
+        }
+        return ret;
+    }
+
     static public GameObject GetPrefabFromName(string _modelName, TmUDP.ObjPrefabArrScrObj _prefabArr)
     {
         GameObject ret = null;
@@ -372,6 +546,19 @@ public class MyUDPServer : TmUDP.TmUDPServer
         if(_prefabArr.objInfoArr.Length > _prefabId)
             ret = _prefabArr.objInfoArr[_prefabId].name;
         return ret;
+    }
+
+    static public string GetJsonPartStrFromAddedObjList(List<MyAddedObjInfo> _addedObjList, int _maxNum)
+    {
+        string outStr = "";
+        for (int i=0; i< Mathf.Min(_addedObjList.Count,_maxNum); ++i)
+        {
+            MyAddedObjInfoForJson data = new MyAddedObjInfoForJson(_addedObjList[i]);
+            outStr += JsonUtility.ToJson(data);
+            if(i< _addedObjList.Count - 1)
+                outStr += ",";
+        }
+        return outStr;
     }
 
     static public void ONGUISub(string _host, int _hSendPort, int _hRecvPort, string _myIP, List<MyClientInfo> _infoList)

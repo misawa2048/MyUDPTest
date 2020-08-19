@@ -19,36 +19,12 @@ public class MyUDPClient : TmUDP.TmUDPClient
         [Tooltip("Minimum time to send message again")] public float reloadTime = 0.2f;
         [Tooltip("Parent transform for offset")] public Transform parentTr = null;
     }
-    [System.Serializable]
-    public class MyAddedObjInfo
-    {
-        [Tooltip("Added GameObject")] public GameObject gameObject = null;
-        [Tooltip("IP addres")] public string ip = "";
-        [Tooltip("object Name")] public string objName = "";
-        [Tooltip("model count")] public int modelCount = 0;
-        [Tooltip("some parameters")] public string suffix = "";
-        [Tooltip("position")] public Vector3 pos = Vector3.zero;
-        [Tooltip("rotation")] public Quaternion rot = Quaternion.identity;
-
-        public MyAddedObjInfo(GameObject _go, string _ip, string _objName, int _modelCount, string _suffix, Vector3 _pos, Quaternion _rot)
-        {
-            gameObject = _go;
-            ip = _ip;
-            objName = _objName;
-            modelCount = _modelCount;
-            suffix = _suffix;
-            pos = _pos;
-            rot = _rot;
-        }
-
-    }
-
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
     [SerializeField, ReadOnlyWhenPlaying] MyClientSettings m_settings = new MyClientSettings();
     [SerializeField, ReadOnlyWhenPlaying] TmUDP.ObjPrefabArrScrObj m_prefabInfo=null;
     [SerializeField, ReadOnly, Tooltip("clients except me")] List<MyUDPServer.MyClientInfo> m_plInfoList = null;
-    [SerializeField, ReadOnly, Tooltip("GameObjects I instantiate")] List<MyAddedObjInfo> m_AddedObjList = null;
-    public List<MyAddedObjInfo> addedObjList { get { return m_AddedObjList; } }
+    [SerializeField, ReadOnly, Tooltip("GameObjects I instantiate")] List<MyUDPServer.MyAddedObjInfo> m_AddedObjList = null;
+    public List<MyUDPServer.MyAddedObjInfo> addedObjList { get { return m_AddedObjList; } }
     Vector3 m_previousPos;
     Quaternion m_previousRot;
     float m_reloadTimer;
@@ -73,13 +49,21 @@ public class MyUDPClient : TmUDP.TmUDPClient
 
         base.Start();
         m_plInfoList = new List<MyUDPServer.MyClientInfo>();
-        m_AddedObjList = new List<MyAddedObjInfo>();
+        m_AddedObjList = new List<MyUDPServer.MyAddedObjInfo>();
         m_previousPos = transform.position;
         m_previousRot = transform.rotation;
         m_reloadTimer = 0f;
         m_modelCount = 0;
+
+        StartCoroutine(startWithDelayCo(0.1f));
+    }
+
+    IEnumerator startWithDelayCo(float _delay)
+    {
+        yield return new WaitForSeconds(_delay);
         // send init when start
-        this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT+","+ Vector3ToFormatedStr(transform.position,2));
+        this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT + "," + Vector3ToFormatedStr(transform.position, 2));
+        this.SendDataFromDataStr(this.myIP + "," + MyUDPServer.KWDEX_REQUESTOBJARR + "," + "10");
     }
 
     // Update is called once per frame
@@ -153,14 +137,13 @@ public class MyUDPClient : TmUDP.TmUDPClient
                     bool objResult = MyUDPServer.TryGetObjectNameFromData(dataArr, out objName, out count, out pos, out rot, out suffix);
                     if (objResult)
                     {
-                        if(HasGameObjectInAddedList(ipStr, objName, count))
+                        if(MyUDPServer.HasAddedObjectInAddedList(m_AddedObjList, ipStr, objName, count))
                         { // update only
-                            MyAddedObjInfo existInfo = getInfoFromInfo(ipStr, objName, count);
+                            MyUDPServer.MyAddedObjInfo existInfo = MyUDPServer.GetInfoFromInfo(m_AddedObjList, ipStr, objName, count);
                             if (existInfo != null)
                             {
                                 existInfo.gameObject.transform.SetPositionAndRotation(pos,rot);
-                                existInfo.pos = pos;
-                                existInfo.rot = rot;
+                                existInfo.SetPositionAndRotation(pos,rot);
                             }
                         }
                         else
@@ -174,9 +157,9 @@ public class MyUDPClient : TmUDP.TmUDPClient
                     objResult = MyUDPServer.TryGetRemoveObjectFromData(dataArr, out objName, out count);
                     if (objResult)
                     {
-                        if (HasGameObjectInAddedList(ipStr, objName, count))
+                        if (MyUDPServer.HasAddedObjectInAddedList(m_AddedObjList, ipStr, objName, count))
                         {
-                            MyAddedObjInfo existInfo = getInfoFromInfo(ipStr, objName, count);
+                            MyUDPServer.MyAddedObjInfo existInfo = MyUDPServer.GetInfoFromInfo(m_AddedObjList, ipStr, objName, count);
                             if (existInfo != null)
                             {
                                 Destroy(existInfo.gameObject);
@@ -189,8 +172,15 @@ public class MyUDPClient : TmUDP.TmUDPClient
             }
             else
             {
-                // do nothing now
-                Debug.Log("----MyUDPClientEchoRecv:" + text);
+                Debug.Log("----MyUDPClient(Echo)Recv:" + text);
+                // my requests or echo(broadcast)
+                MyUDPServer.MyAddedObjInfo[] addedObjArr = null;
+                bool request = MyUDPServer.TryGetAddedObjArray(dataArr, out addedObjArr);
+                if (request)
+                {
+                    Debug.Log("GetData!" + addedObjArr.ToString());
+                }
+
             }
         }
     }
@@ -272,14 +262,14 @@ public class MyUDPClient : TmUDP.TmUDPClient
             go.name = _ipStr + "_" + m_prefabInfo.objInfoArr[prefabId].name + "_" + _count;
             go.name += (_suffix != "") ? "_" + _suffix : "";
 
-            m_AddedObjList.Add(new MyAddedObjInfo(go, _ipStr, _objName, _count, _suffix, _pos, _rot));
+            m_AddedObjList.Add(new MyUDPServer.MyAddedObjInfo(go, _ipStr, _objName, _count, _suffix, _pos, _rot));
         }
         return go;
     }
 
     public void OnRemoveGameObject(GameObject _go)
     {
-        MyAddedObjInfo info = getInfoFromGameObject(_go);
+        MyUDPServer.MyAddedObjInfo info = getInfoFromGameObject(_go);
         Destroy(_go);
         if (info != null)
         {
@@ -289,17 +279,17 @@ public class MyUDPClient : TmUDP.TmUDPClient
         }
     }
 
-    public void OnSetImage(MyAddedObjInfo _info, string _url)
+    public void OnSetImage(MyUDPServer.MyAddedObjInfo _info, string _url)
     {
         StartCoroutine(setImageCo(_info,_url));
     }
 
     public void OnMoveGameObject(GameObject _go)
     {
-        if (!IsMyGameObject(_go))
+        if (!IsMyGameObject(m_AddedObjList, this.myIP, _go))
             return;
 
-        MyAddedObjInfo info = getInfoFromGameObject(_go);
+        MyUDPServer.MyAddedObjInfo info = getInfoFromGameObject(_go);
         if (info != null)
         {
             string str = GetDataStrFromObjName(this.myIP, info.objName, info.modelCount, _go.transform.position, _go.transform.rotation,"");
@@ -307,23 +297,18 @@ public class MyUDPClient : TmUDP.TmUDPClient
         }
     }
 
-    public bool HasGameObjectInAddedList(string _ip, string _objName,int _count)
+    static public bool HasGameObjectInAddedList(List<MyUDPServer.MyAddedObjInfo> _list, GameObject _go)
     {
-        return m_AddedObjList.Any<MyAddedObjInfo>(e => (e.objName==_objName && e.modelCount == _count && e.ip == _ip));
+        return _list.Any<MyUDPServer.MyAddedObjInfo>(e => (e.gameObject.Equals(_go)));
     }
-    public bool HasGameObjectInAddedList(GameObject _go)
+    static public bool IsMyGameObject(List<MyUDPServer.MyAddedObjInfo> _list, string _ip, GameObject _go)
     {
-        return m_AddedObjList.Any<MyAddedObjInfo>(e => (e.gameObject.Equals(_go)));
-    }
-
-    public bool IsMyGameObject(GameObject _go)
-    {
-        return m_AddedObjList.Any<MyAddedObjInfo>(e => (e.gameObject.Equals(_go)) && (e.ip == this.myIP));
+        return _list.Any<MyUDPServer.MyAddedObjInfo>(e => (e.gameObject.Equals(_go)) && (e.ip == _ip));
     }
 
-    private MyAddedObjInfo getInfoFromGameObject(GameObject _go)
+    private MyUDPServer.MyAddedObjInfo getInfoFromGameObject(GameObject _go)
     {
-        MyAddedObjInfo info = null;
+        MyUDPServer.MyAddedObjInfo info = null;
         for (int i = 0; i < m_AddedObjList.Count; ++i)
         {
             if (m_AddedObjList[i].gameObject.Equals(_go))
@@ -334,21 +319,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
         }
         return info;
     }
-
-    private MyAddedObjInfo getInfoFromInfo(string _ip, string _objName, int _count)
-    {
-        MyAddedObjInfo info = null;
-        for (int i = 0; i < m_AddedObjList.Count; ++i)
-        {
-            if (m_AddedObjList[i].ip == _ip && m_AddedObjList[i].objName == _objName && m_AddedObjList[i].modelCount == _count)
-            {
-                info = m_AddedObjList[i];
-                break;
-            }
-        }
-        return info;
-    }
-
 
     // for debug
     void OnGUI()
@@ -376,7 +346,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         return _ip + "," + MyUDPServer.KWDEX_OBJ + "," + valStr + "," +_suffix;
     }
 
-    IEnumerator setImageCo(MyAddedObjInfo _info, string _url)
+    IEnumerator setImageCo(MyUDPServer.MyAddedObjInfo _info, string _url)
     {
         using (UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(_url))
         {
