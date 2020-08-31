@@ -44,6 +44,8 @@ namespace TmUDP
         internal string[] m_addedClientArr = null;
         internal string[] m_removedClientArr = null;
 
+        public virtual void Awake(){ }
+
         // Start is called before the first frame update
         public virtual void Start()
         {
@@ -51,7 +53,7 @@ namespace TmUDP
             m_sendUdp = null;
             m_receiveUdp = null;
             m_thread = null;
-            m_myIP = TmUDPClient.GetIP();
+            m_myIP = GetIP();
             m_clientList = new List<string>();
             //--lock
             m_thRecvList = new List<byte[]>();
@@ -123,7 +125,7 @@ namespace TmUDP
 
         internal virtual void OnApplicationPause(bool isPpause)
         {
-#if (UNITY_ANDROID || UNITY_IPHONE) && !UNITY_EDITOR
+#if false // (UNITY_ANDROID || UNITY_IPHONE) && !UNITY_EDITOR
             if (isPpause)
             {
                 udpStop();
@@ -153,9 +155,16 @@ namespace TmUDP
                     }
                 }
                 else
-                { // -- for client --
-                    m_sendUdp.Connect(m_host, m_sendPort);
-                    Debug.Log("UDPClientSend start.");
+                { // -- for client 
+                    try
+                    {
+                        m_sendUdp.Connect(m_host, m_sendPort);
+                        Debug.Log("UDPClientSend start.");
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.Log("UDPClient Connect error:"+e.ToString());
+                    }
                 }
             }
 
@@ -320,11 +329,21 @@ namespace TmUDP
         internal void SendDataFromDataStr(string _dataStr)
         {
             this.SendData(System.Text.Encoding.UTF8.GetBytes(_dataStr));
-            Debug.Log(_dataStr);
         }
         internal void SendData(byte[] _data)
         {
-            m_sendUdp.Send(_data, _data.Length);
+            try
+            {
+                m_sendUdp.Send(_data, _data.Length);
+            }
+            catch (System.InvalidOperationException e)
+            {
+                Debug.Log(e);
+            }
+            catch (SocketException e)
+            {
+                Debug.Log(e);
+            }
         }
 
         // https://stackoverflow.com/questions/51975799/how-to-get-ip-address-of-device-in-unity-2018
