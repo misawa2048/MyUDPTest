@@ -23,6 +23,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         [Tooltip("Minimum time to send message again")] public float reloadTime = 0.2f;
         [Tooltip("Parent transform for offset")] public Transform parentTr = null;
     }
+    [SerializeField] string m_getGlobaiIpAPI = "https://api.ipify.org/";
     [SerializeField] ObjChangeEvent m_onObjAddEvnts = new ObjChangeEvent();
     [SerializeField] ObjChangeEvent m_onObjChangeEvnts = new ObjChangeEvent();
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
@@ -75,6 +76,18 @@ public class MyUDPClient : TmUDP.TmUDPClient
 
     IEnumerator startWithDelayCo(float _delay)
     {
+        if (!IsLocalIP(this.m_host))
+        {
+            using (UnityWebRequest www = UnityWebRequest.Get(m_getGlobaiIpAPI))
+            {
+                yield return www.SendWebRequest();
+
+                if (www.isNetworkError || www.isHttpError)
+                    Debug.Log(www.error);
+                else
+                    this.m_myIP = www.downloadHandler.text;
+            }
+        }
         yield return new WaitForSeconds(_delay);
         // send init when start
         this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT + "," + Vector3ToFormatedStr(transform.position, 2));
@@ -396,6 +409,22 @@ public class MyUDPClient : TmUDP.TmUDPClient
         valStr += TmUDP.TmUDPClient.Vector3ToFormatedStr(_pos, 2) + ",";
         valStr += TmUDP.TmUDPClient.QuaternionToFormatedStr(_rot, 2);
         return _ip + "," + MyUDPServer.KWDEX_OBJ + "," + valStr + "," +_suffix;
+    }
+
+    static public bool IsLocalIP(string _ip)
+    {
+        bool ret = false;
+        string[] partsArr = _ip.Split('.');
+        if ((partsArr.Length == 1 && partsArr[0].ToLower().Equals("localhost")))
+            ret = true;
+        else if (partsArr.Length == 4)
+        {
+            int ip0 = 0;
+            if(int.TryParse(partsArr[0],out ip0))
+                if ((ip0 == 10) || (ip0 == 172) || (ip0 == 192))
+                    ret = true;
+        }
+        return ret;
     }
 
     IEnumerator setImageCo(MyUDPServer.MyAddedObjInfo _info, string _url)

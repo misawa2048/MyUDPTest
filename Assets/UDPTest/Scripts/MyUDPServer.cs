@@ -594,7 +594,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         GUIStyle customGuiStyle = new GUIStyle();
         customGuiStyle.fontSize = 32;
         customGuiStyle.alignment = TextAnchor.UpperRight;
-        customGuiStyle.normal.textColor = Color.black;
+        customGuiStyle.normal.textColor = MyUDPClient.IsLocalIP(_myIP) ? Color.black : Color.blue;
         GUILayout.BeginArea(new Rect(Screen.width - 310, 20, 300, Screen.height-20));
         GUILayout.BeginVertical();
         GUILayout.TextArea("host:" + _host+"  ", customGuiStyle); // "  " for round corner
