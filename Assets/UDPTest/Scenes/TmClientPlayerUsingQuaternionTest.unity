@@ -467,6 +467,16 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerUDPClientUsingQuaternion
       objectReference: {fileID: 0}
+    - target: {fileID: 1311457196293701693, guid: 7566e279238febd429131bcf8d57e998,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4431897044047698223, guid: 7566e279238febd429131bcf8d57e998,
+        type: 3}
+      propertyPath: m_host
+      value: localhost
+      objectReference: {fileID: 0}
     - target: {fileID: 7600152795830976888, guid: 7566e279238febd429131bcf8d57e998,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -539,7 +549,7 @@ PrefabInstance:
     - target: {fileID: 7179571092251666440, guid: 5468650b1fdcfcd4d99a6a04df5f056e,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7179571092251666442, guid: 5468650b1fdcfcd4d99a6a04df5f056e,
         type: 3}

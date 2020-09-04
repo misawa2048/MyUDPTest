@@ -11,6 +11,31 @@ namespace TmUDP
 {
     [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
     [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
+    [System.Serializable]
+    public class RemoteInfo
+    {
+        public string ipStr;
+        public IPEndPoint remoteEP;
+        public string m_AddressStr;
+        public string m_AddressFamilyStr;
+        public RemoteInfo(string _ipStr, IPEndPoint _remoteEP)
+        {
+            ipStr = _ipStr;
+            remoteEP = _remoteEP;
+            m_AddressStr = _remoteEP.Address.ToString();
+            m_AddressFamilyStr = _remoteEP.AddressFamily.ToString();
+        }
+    }
+    public class RemoteData
+    {
+        public byte[] data;
+        public IPEndPoint remoteEP;
+        public RemoteData(byte[] _data, IPEndPoint _remoteEP)
+        {
+            data = _data;
+            remoteEP = _remoteEP;
+        }
+    }
 
     public class TmUDPModule : MonoBehaviour
     {
@@ -32,19 +57,19 @@ namespace TmUDP
         [SerializeField] internal NumChangeEvent m_onAddClientEvnts = new NumChangeEvent();
         [SerializeField] internal NumChangeEvent m_onRemoveClientEvnts = new NumChangeEvent();
         [SerializeField, ReadOnly, Tooltip("client list from base class")]
-        internal List<string> m_clientList = null;
+        internal List<RemoteInfo> m_clientList = null;
         internal UdpClient m_sendUdp;
         internal UdpClient m_receiveUdp;
         internal Thread m_thread;
         internal bool m_isReceiving;
-        internal List<byte[]> m_thRecvList=null;
-        internal List<string> m_thAddedClientList = null;
-        internal List<string> m_thRemovedClientList = null;
-        internal byte[][] m_recvArr = null;
-        internal string[] m_addedClientArr = null;
-        internal string[] m_removedClientArr = null;
+        internal List<RemoteData> m_thRecvList = null;
+        internal List<RemoteInfo> m_thAddedClientList = null;
+        internal List<RemoteInfo> m_thRemovedClientList = null;
+        internal RemoteData[] m_recvArr = null;
+        internal RemoteInfo[] m_addedClientArr = null;
+        internal RemoteInfo[] m_removedClientArr = null;
 
-        public virtual void Awake(){ }
+        public virtual void Awake() { }
 
         // Start is called before the first frame update
         public virtual void Start()
@@ -54,11 +79,11 @@ namespace TmUDP
             m_receiveUdp = null;
             m_thread = null;
             m_myIP = GetIP();
-            m_clientList = new List<string>();
+            m_clientList = new List<RemoteInfo>();
             //--lock
-            m_thRecvList = new List<byte[]>();
-            m_thAddedClientList = new List<string>();
-            m_thRemovedClientList = new List<string>();
+            m_thRecvList = new List<RemoteData>();
+            m_thAddedClientList = new List<RemoteInfo>();
+            m_thRemovedClientList = new List<RemoteInfo>();
             //--!lock
             udpStart();
         }
@@ -85,30 +110,30 @@ namespace TmUDP
                 m_thRemovedClientList.Clear();
             } // m_thread.resume
 
-            foreach (string dataStr in m_addedClientArr)
+            foreach (RemoteInfo dataInfo in m_addedClientArr)
             {
-                string[] dataArr = dataStr.Split(',');
+                string[] dataArr = dataInfo.ipStr.Split(',');
                 string ipStr = dataArr[0];
-                if (!m_clientList.Contains(ipStr))
+                if (!m_clientList.Any(v => v.ipStr.Equals(ipStr)))
                 {
                     m_onAddClientEvnts.Invoke(dataArr);
-                    m_clientList.Add(ipStr);
+                    m_clientList.Add(new RemoteInfo(ipStr, dataInfo.remoteEP));
                 }
             }
 
-            foreach (byte[] data in m_recvArr)
+            foreach (RemoteData remoteData in m_recvArr)
             {
-                m_onReceiveEvnts.Invoke(data);
+                m_onReceiveEvnts.Invoke(remoteData.data);
             }
 
-            foreach (string dataStr in m_removedClientArr)
+            foreach (RemoteInfo dataInfo in m_removedClientArr)
             {
-                string[] dataArr = dataStr.Split(',');
+                string[] dataArr = dataInfo.ipStr.Split(',');
                 string ipStr = dataArr[0];
-                if (m_clientList.Contains(ipStr))
+                if (dataInfo.ipStr.Equals(ipStr))
                 {
                     m_onRemoveClientEvnts.Invoke(dataArr);
-                    m_clientList.Remove(ipStr);
+                    m_clientList.Remove(dataInfo);
                 }
             }
         }
@@ -146,13 +171,12 @@ namespace TmUDP
                     {
                         m_host = IS_BROADCAST;
                         m_sendUdp.Connect(IPAddress.Broadcast, m_sendPort);
-                        Debug.Log("UDPServerBroadcast start." + m_sendUdp.EnableBroadcast);
                     }
                     else
                     {
                         m_sendUdp.Connect(m_host, m_sendPort);
-                        Debug.Log("UDPServerSend start." + m_sendUdp.EnableBroadcast);
                     }
+                    Debug.Log("UDPServerSend start. Broadcast=" + m_sendUdp.EnableBroadcast);
                 }
                 else
                 { // -- for client 
@@ -163,7 +187,7 @@ namespace TmUDP
                     }
                     catch (System.Exception e)
                     {
-                        Debug.Log("UDPClient Connect error:"+e.ToString());
+                        Debug.Log("UDPClient Connect error:" + e.ToString());
                     }
                 }
             }
@@ -228,16 +252,16 @@ namespace TmUDP
 
         private void ThreadMethod()
         {
-            void thManageClient(string _text)
+            void thManageClient(string _text, IPEndPoint _remoteEP)
             {
                 string[] dataArr = _text.Split(',');
 
                 // ADD
                 if (dataArr.Length > 0)
                 {
-                    if (!m_clientList.Contains(dataArr[0]))
+                    if (!m_clientList.Any(v => v.ipStr.Equals(dataArr[0])))
                     {
-                        m_thAddedClientList.Add(_text);
+                        m_thAddedClientList.Add(new RemoteInfo(_text, _remoteEP));
                     }
                 }
 
@@ -246,56 +270,56 @@ namespace TmUDP
                 {
                     if (dataArr[1].StartsWith(KWD_QUIT))
                     {
-                        if (m_clientList.Contains(dataArr[0]))
+                        if (m_clientList.Any(v => v.ipStr.Equals(dataArr[0])))
                         {
-                            m_thRemovedClientList.Add(_text);
+                            m_thRemovedClientList.Add(new RemoteInfo(dataArr[0], _remoteEP));
                         }
                     }
                 }
             }
             // -- server only --
-            void thBroadcast(byte[] _data)
+            void thBroadcast(byte[] _data, IPEndPoint _remoteEP)
             {
-                m_thRecvList.Add(_data);
+                m_thRecvList.Add(new RemoteData(_data,_remoteEP));
                 if (m_sendUdp.EnableBroadcast)
                 {
                     m_sendUdp.Send(_data, _data.Length);
                 }
                 else
                 {
-                    foreach (string client in m_clientList)
+                    foreach (RemoteInfo client in m_clientList)
                     {
                         //m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
-                        m_sendUdp.Connect(client, m_sendPort);
+                        m_sendUdp.Connect(client.remoteEP.Address, m_sendPort);
                         m_sendUdp.Send(_data, _data.Length);
                     }
                 }
             }
             // -- client only --
-            void thUpdate(byte[] _data)
+            void thUpdate(byte[] _data, IPEndPoint _remoteEP)
             {
-                m_thRecvList.Add(_data);
+                m_thRecvList.Add(new RemoteData(_data,_remoteEP));
             }
 
             while (true)
             {
                 if (m_isReceiving)
                 {
-                    if (m_receiveUdp.Available>0)
+                    if (m_receiveUdp.Available > 0)
                     {
                         try
                         {
                             IPEndPoint remoteEP = null;
                             byte[] data = m_receiveUdp.Receive(ref remoteEP);
                             string text = System.Text.Encoding.UTF8.GetString(data);
-                            thManageClient(text);
+                            thManageClient(text, remoteEP);
                             if (m_isServer)
                             { //-- for server --
-                                thBroadcast(data);
+                                thBroadcast(data, remoteEP);
                             }
                             else
                             { // -- for client --
-                                thUpdate(data);
+                                thUpdate(data, remoteEP);
                             }
                         }
                         catch (SocketException e)
@@ -427,13 +451,14 @@ namespace TmUDP
                 if (args[i].StartsWith("-receivePort="))
                     m_receivePort = getPort(args[i], m_receivePort);
             }
-            Debug.Log("sendPort:" + m_sendPort.ToString()+ " recvPort:" + m_receivePort.ToString());
+            Debug.Log("sendPort:" + m_sendPort.ToString() + " recvPort:" + m_receivePort.ToString());
         }
         int getPort(string _paramStr, int _defaultPort)
         {
             int ret = _defaultPort;
             string[] strArr = _paramStr.Split('=');
-            if (strArr.Length >= 2){
+            if (strArr.Length >= 2)
+            {
                 int.TryParse(strArr[1], out ret);
             }
             return ret;
