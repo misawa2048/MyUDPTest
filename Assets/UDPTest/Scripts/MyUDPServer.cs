@@ -370,14 +370,14 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new LinqSch(idx, dat)).FirstOrDefault(e => e.data.Equals(KWD_POS)).index;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
         if (index == 0)
         {
             try
             {
                 index = _dataArr.Select((dat, idx) => new LinqSch(idx, dat)).FirstOrDefault(e => e.data.Equals(KWD_INIT)).index;
             }
-            catch (System.Exception e) { Debug.Log(e); }
+            catch (System.Exception e) { DebugWarning(e); }
             if (index > 0)
             {
                 _isInit = true;
@@ -404,7 +404,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_ANGY)).Idx;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
 
         if ((index > 0) && (_dataArr.Length > index + 1))
         { // rotY
@@ -425,7 +425,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_QUAT)).Idx;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
 
         if ((index > 0) && (_dataArr.Length > index + 4))
         { // rotY
@@ -453,7 +453,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_OBJ)).Idx;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
 
         if ((index > 0) && (_dataArr.Length > index + 10))
         { // rotY
@@ -484,7 +484,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_REMOVEOBJ)).Idx;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
 
         if ((index > 0) && (_dataArr.Length > index + 2))
         {
@@ -506,7 +506,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_REQUESTOBJARR)).Idx;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
 
         if ((index > 0) && (_dataArr.Length > index + 1))
         {
@@ -526,7 +526,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_OBJARRAY)).Idx;
         }
-        catch (System.Exception e) { Debug.Log(e); }
+        catch (System.Exception e) { DebugWarning(e); }
 
         if ((index > 0) && (_dataArr.Length > index + 1))
         {
@@ -611,5 +611,12 @@ public class MyUDPServer : TmUDP.TmUDPServer
         GUILayout.TextArea("AddedObjs:" + _AddedObjList.Count, customGuiStyle);
         GUILayout.EndVertical();
         GUILayout.EndArea();
+    }
+
+    static public void DebugWarning(System.Exception e)
+    {
+#if UNITY_EDITOR
+        Debug.Log(e);
+#endif
     }
 }
