@@ -23,7 +23,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
         [Tooltip("Minimum time to send message again")] public float reloadTime = 0.2f;
         [Tooltip("Parent transform for offset")] public Transform parentTr = null;
     }
-    [SerializeField] string m_getGlobaiIpAPI = "https://api.ipify.org/";
     [SerializeField] ObjChangeEvent m_onObjAddEvnts = new ObjChangeEvent();
     [SerializeField] ObjChangeEvent m_onObjChangeEvnts = new ObjChangeEvent();
     [SerializeField,ReadOnlyWhenPlaying] GameObject m_clientMarkerPrefab = null;
@@ -76,18 +75,6 @@ public class MyUDPClient : TmUDP.TmUDPClient
 
     IEnumerator startWithDelayCo(float _delay)
     {
-        if (!IsLocalIP(this.m_host))
-        {
-            using (UnityWebRequest www = UnityWebRequest.Get(m_getGlobaiIpAPI))
-            {
-                yield return www.SendWebRequest();
-
-                if (www.isNetworkError || www.isHttpError)
-                    Debug.Log(www.error);
-                else
-                    this.m_myIP = www.downloadHandler.text;
-            }
-        }
         yield return new WaitForSeconds(_delay);
         // send init when start
         this.SendDataFromDataStr(this.myIP + "," + TmUDP.TmUDPModule.KWD_INIT + "," + Vector3ToFormatedStr(transform.position, 2));
@@ -142,7 +129,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
                     if (isInit)
                     {
                         this.SendDataFromDataStr(getDataStrFromPosition(this.myIP, transform.position));
-                        Debug.Log("-**-MyUDPClientRecvREQ:" + text);
+                        //Debug.Log("-**-MyUDPClientRecvREQ:" + text);
                     }
 
                     float angY =0f;
@@ -195,11 +182,11 @@ public class MyUDPClient : TmUDP.TmUDPClient
                         }
                     }
                 }
-                Debug.Log("----MyUDPClientOtherRecv:" + text);
+                //Debug.Log("----MyUDPClientOtherRecv:" + text);
             }
             else
             {
-                Debug.Log("----MyUDPClient(Echo)Recv:" + text);
+                //Debug.Log("----MyUDPClient(Echo)Recv:" + text);
                 // my requests or echo(broadcast)
                 MyUDPServer.MyAddedObjInfo[] addedObjArr = null;
                 if (MyUDPServer.TryGetAddedObjArray(dataArr, out addedObjArr))
@@ -263,9 +250,13 @@ public class MyUDPClient : TmUDP.TmUDPClient
         }
     }
 
-    public void OnChangeHost(string _hostStr) // "hostname[:sendPort:recvPort]"
+    public void OnChangeHost(string _hostIPAndPortsStr) // "hostname[:sendPort:recvPort]"
     {
-        string[] hostInfoStrArr = _hostStr.Split(':');
+        ChangeHost(_hostIPAndPortsStr, true);
+    }
+    public void ChangeHost(string _hostIPAndPortsStr, bool _restart)
+    {
+        string[] hostInfoStrArr = _hostIPAndPortsStr.Split(':');
         if (hostInfoStrArr.Length > 0)
         {
             PlayerPrefs.SetString(PREFS_KEY_HOST, hostInfoStrArr[0]);
@@ -278,17 +269,21 @@ public class MyUDPClient : TmUDP.TmUDPClient
                 PlayerPrefs.SetInt(PREFS_KEY_HSEND_PORT, hSp);
                 PlayerPrefs.SetInt(PREFS_KEY_HRECV_PORT, hRp);
             }
-            Debug.Log("Change host > " + _hostStr);
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            if(_restart)
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
     public void OnChangeClientIP(string _clientIP)
     {
+        ChangeClientIP(_clientIP, true);
+    }
+    public void ChangeClientIP(string _clientIP, bool _restart)
+    {
         if (USE_PLAYERPREFS)
         {
             PlayerPrefs.SetString(PREFS_KEY_CLIENT,_clientIP);
-            Debug.Log("Change clientName > _clientIP");
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            if (_restart)
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 
@@ -388,7 +383,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
     void OnGUI()
     {
         if (MyUDPClient.USE_PLAYERPREFS && (PlayerPrefs.GetInt(MyUDPClient.PREFS_KEY_DEBUGDISP) != 0))
-            MyUDPServer.ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList, m_AddedObjList);
+            MyUDPServer.ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList, m_AddedObjList,false);
     }
 
     static public float GetDiffAngleY(float _angY0, float _angY1) {

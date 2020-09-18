@@ -280,7 +280,7 @@ namespace TmUDP
             // -- server only --
             void thBroadcast(byte[] _data, IPEndPoint _remoteEP)
             {
-                m_thRecvList.Add(new RemoteData(_data,_remoteEP));
+                m_thRecvList.Add(new RemoteData(_data, _remoteEP));
                 if (m_sendUdp.EnableBroadcast)
                 {
                     m_sendUdp.Send(_data, _data.Length);
@@ -298,7 +298,7 @@ namespace TmUDP
             // -- client only --
             void thUpdate(byte[] _data, IPEndPoint _remoteEP)
             {
-                m_thRecvList.Add(new RemoteData(_data,_remoteEP));
+                m_thRecvList.Add(new RemoteData(_data, _remoteEP));
             }
 
             while (true)

@@ -148,6 +148,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     // Start is called before the first frame update
     public override void Start()
     {
+        Application.runInBackground = true;
         if (MyUDPClient.USE_PLAYERPREFS && PlayerPrefs.HasKey(MyUDPClient.PREFS_KEY_HSEND_PORT))
             this.m_sendPort = PlayerPrefs.GetInt(MyUDPClient.PREFS_KEY_HSEND_PORT);
         if (MyUDPClient.USE_PLAYERPREFS && PlayerPrefs.HasKey(MyUDPClient.PREFS_KEY_HRECV_PORT))
@@ -234,7 +235,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
                 }
 #endif
             }
-            Debug.Log("--MyUDPServerRecv:" + text);
+            //Debug.Log("--MyUDPServerRecv:" + text);
         }
     }
 
@@ -256,7 +257,11 @@ public class MyUDPServer : TmUDP.TmUDPServer
 
     public void OnChangePort(string _portStr)
     {
-        string[] hostInfoStrArr = _portStr.Split(':'); // 7001:7003
+        ChangePort(_portStr, true);
+    }
+    public void ChangePort(string _portsStr, bool _restart)
+    {
+        string[] hostInfoStrArr = _portsStr.Split(':'); // 7001:7003
         if (hostInfoStrArr.Length > 1)
         {
             int hSp = this.m_sendPort;    // host's send port
@@ -268,7 +273,8 @@ public class MyUDPServer : TmUDP.TmUDPServer
                 PlayerPrefs.SetInt(MyUDPClient.PREFS_KEY_HSEND_PORT, hSp);
                 PlayerPrefs.SetInt(MyUDPClient.PREFS_KEY_HRECV_PORT, hRp);
             }
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            if(_restart)
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
     }
 
@@ -276,7 +282,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     void OnGUI()
     {
         //if (MyUDPClient.USE_PLAYERPREFS && (PlayerPrefs.GetInt(MyUDPClient.PREFS_KEY_DEBUGDISP)!=0))
-            ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList, m_AddedObjList);
+            ONGUISub(this.host, this.sendPort, this.receivePort, this.myIP, m_plInfoList, m_AddedObjList,true);
     }
 
     static public bool OnAddClientSub(string[] _dataArr, List<MyClientInfo> _infoList, GameObject _makerPrefab, Transform _parent=null)
@@ -296,7 +302,15 @@ public class MyUDPServer : TmUDP.TmUDPServer
     {
         bool ret = false;
         string ipStr = _dataArr[0];
-        MyClientInfo tgt = _infoList.First(v => v.uip == ipStr);
+        MyClientInfo tgt = null;
+        for (int i = 0; i < _infoList.Count; ++i)
+        {
+            if (_infoList[i].uip == ipStr)
+            {
+                tgt = _infoList[i];
+                break;
+            }
+        }
         if (tgt != null)
         {
             if (tgt.obj != null)
@@ -365,19 +379,10 @@ public class MyUDPServer : TmUDP.TmUDPServer
         bool ret = false;
         _pos = Vector3.zero;
         _isInit = false;
-        int index = 0;
-        try
+        int index = GetIdxByKWD(_dataArr, KWD_POS);
+        if (index <= 0)
         {
-            index = _dataArr.Select((dat, idx) => new LinqSch(idx, dat)).FirstOrDefault(e => e.data.Equals(KWD_POS)).index;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-        if (index == 0)
-        {
-            try
-            {
-                index = _dataArr.Select((dat, idx) => new LinqSch(idx, dat)).FirstOrDefault(e => e.data.Equals(KWD_INIT)).index;
-            }
-            catch (System.Exception e) { DebugWarning(e); }
+            index = GetIdxByKWD(_dataArr, KWD_INIT);
             if (index > 0)
             {
                 _isInit = true;
@@ -399,13 +404,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     {
         bool ret = false;
         _angY = 0f;
-        int index = 0;
-        try
-        {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_ANGY)).Idx;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-
+        int index = GetIdxByKWD(_dataArr, KWD_ANGY);
         if ((index > 0) && (_dataArr.Length > index + 1))
         { // rotY
             ret = true;
@@ -419,14 +418,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     {
         bool ret = false;
         _rot = Quaternion.identity;
-
-        int index = 0;
-        try
-        {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(KWD_QUAT)).Idx;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-
+        int index = GetIdxByKWD(_dataArr, KWD_QUAT);
         if ((index > 0) && (_dataArr.Length > index + 4))
         { // rotY
             ret = true;
@@ -447,14 +439,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         _pos = Vector3.zero;
         _rot = Quaternion.identity;
         _suffix = "";
-
-        int index = 0;
-        try
-        {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_OBJ)).Idx;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-
+        int index = GetIdxByKWD(_dataArr, MyUDPServer.KWDEX_OBJ);
         if ((index > 0) && (_dataArr.Length > index + 10))
         { // rotY
             ret = true;
@@ -479,13 +464,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         _objName = "";
         _count = 0;
 
-        int index = 0;
-        try
-        {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_REMOVEOBJ)).Idx;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-
+        int index = GetIdxByKWD(_dataArr, MyUDPServer.KWDEX_REMOVEOBJ);
         if ((index > 0) && (_dataArr.Length > index + 2))
         {
             ret = true;
@@ -501,13 +480,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
     {
         bool ret = false;
         _jsonStr = "";
-        int index = 0;
-        try
-        {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_REQUESTOBJARR)).Idx;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-
+        int index = GetIdxByKWD(_dataArr, MyUDPServer.KWDEX_REQUESTOBJARR);
         if ((index > 0) && (_dataArr.Length > index + 1))
         {
             ret = true;
@@ -517,17 +490,12 @@ public class MyUDPServer : TmUDP.TmUDPServer
         }
         return ret;
     }
+
     static public bool TryGetAddedObjArray(string[] _dataArr, out MyAddedObjInfo[] _addedObjInfoArr)
     {
         bool ret = false;
         _addedObjInfoArr = null;
-        int index = 0;
-        try
-        {
-            index = _dataArr.Select((dat, idx) => new { Idx = idx, Dat = dat }).First(e => e.Dat.Equals(MyUDPServer.KWDEX_OBJARRAY)).Idx;
-        }
-        catch (System.Exception e) { DebugWarning(e); }
-
+        int index = GetIdxByKWD(_dataArr, MyUDPServer.KWDEX_OBJARRAY);
         if ((index > 0) && (_dataArr.Length > index + 1))
         {
             ret = true;
@@ -539,6 +507,20 @@ public class MyUDPServer : TmUDP.TmUDPServer
         return ret;
     }
 #endif
+
+    static public int GetIdxByKWD(string[] _dataArr, string _kwd)
+    {
+        int index = -1;
+        for(int i=0;i< _dataArr.Length; ++i)
+        {
+            if (_dataArr[i].Equals(_kwd))
+            {
+                index = i;
+                break;
+            }
+        }
+        return index;
+    }
 
     static public GameObject GetPrefabFromName(string _modelName, TmUDP.ObjPrefabArrScrObj _prefabArr)
     {
@@ -589,34 +571,30 @@ public class MyUDPServer : TmUDP.TmUDPServer
     }
 #endif
 
-    static public void ONGUISub(string _host, int _hSendPort, int _hRecvPort, string _myIP, List<MyClientInfo> _infoList, List<MyAddedObjInfo> _AddedObjList)
+    static public void ONGUISub(string _host, int _hSendPort, int _hRecvPort, string _myIP, List<MyClientInfo> _infoList, List<MyAddedObjInfo> _AddedObjList, bool _isDetailMode)
     {
         GUIStyle customGuiStyle = new GUIStyle();
         customGuiStyle.fontSize = 32;
         customGuiStyle.alignment = TextAnchor.UpperRight;
-        customGuiStyle.normal.textColor = MyUDPClient.IsLocalIP(_myIP) ? Color.black : Color.blue;
+        customGuiStyle.normal.textColor = MyUDPClient.IsLocalIP(_myIP) ? Color.white : Color.blue;
         GUILayout.BeginArea(new Rect(Screen.width - 310, 20, 300, Screen.height-20));
         GUILayout.BeginVertical();
-        GUILayout.TextArea("host:" + _host+"  ", customGuiStyle); // "  " for round corner
-        GUILayout.TextArea("S:" + _hSendPort + " R:"+ _hRecvPort, customGuiStyle);
-        GUILayout.TextArea("myIP:" + _myIP, customGuiStyle);
-        foreach (MyClientInfo info in _infoList)
-        {
-            customGuiStyle.normal.textColor = new Color(0.1f, 0.1f, 0.1f);
-            GUILayout.TextArea(info.uip, customGuiStyle);
-            customGuiStyle.normal.textColor = new Color(0f, 0f, 0.4f);
-            GUILayout.TextArea(info.pos.ToString(), customGuiStyle);
-        }
+        GUILayout.Label("host:" + _host+"  ", customGuiStyle); // "  " for round corner
+        GUILayout.Label("S:" + _hSendPort + " R:"+ _hRecvPort, customGuiStyle);
+        GUILayout.Label("myIP:" + _myIP, customGuiStyle);
         customGuiStyle.normal.textColor = Color.green;
-        GUILayout.TextArea("AddedObjs:" + _AddedObjList.Count, customGuiStyle);
+        GUILayout.Label("Objs/Users:" + _AddedObjList.Count+"/"+ _infoList.Count, customGuiStyle);
+        if (_isDetailMode)
+        {
+            foreach (MyClientInfo info in _infoList)
+            {
+                customGuiStyle.normal.textColor = new Color(0.8f, 0.8f, 0.8f);
+                GUILayout.Label(info.uip, customGuiStyle);
+                customGuiStyle.normal.textColor = new Color(0.2f, 0.2f, 0.6f);
+                GUILayout.Label(info.pos.ToString(), customGuiStyle);
+            }
+        }
         GUILayout.EndVertical();
         GUILayout.EndArea();
-    }
-
-    static public void DebugWarning(System.Exception e)
-    {
-#if UNITY_EDITOR
-        Debug.Log(e);
-#endif
     }
 }

@@ -5,10 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
+  - enabled: 1
     path: Assets/UDPTest/Scenes/TmServerTest.unity
     guid: 1d95cd4fc1d197a4e9bda5e589da62b2
-  - enabled: 1
+  - enabled: 0
     path: Assets/UDPTest/Scenes/TmClientPlayerUsingQuaternionTest.unity
     guid: 71c4a7c7144a38642b874ad348d86d8a
   - enabled: 0
