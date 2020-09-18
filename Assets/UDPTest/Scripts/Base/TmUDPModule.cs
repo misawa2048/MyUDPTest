@@ -33,7 +33,7 @@ namespace TmUDP
         public RemoteData(byte[] _data, IPEndPoint _remoteEP)
         {
             data = _data;
-            remoteEP = _remoteEP;
+            remoteEP = new IPEndPoint(_remoteEP.Address, _remoteEP.Port);
         }
     }
 
@@ -124,6 +124,29 @@ namespace TmUDP
             foreach (RemoteData remoteData in m_recvArr)
             {
                 m_onReceiveEvnts.Invoke(remoteData.data);
+                if (m_isServer)
+                {
+                    if (m_sendUdp.EnableBroadcast)
+                    {
+                        m_sendUdp.Send(remoteData.data, remoteData.data.Length);
+                    }
+                    else
+                    {
+                        foreach (RemoteInfo client in m_clientList)
+                        {
+                            //m_sendUdp.Send(remoteData.data, remoteData.data.Length, client, m_sendPort);
+                            try
+                            {
+                                m_sendUdp.Connect(client.remoteEP.Address, m_sendPort);
+                            }
+                            catch (System.Exception e)
+                            {
+                                Debug.Log("UDPServer SendConnect error:" + e.ToString());
+                            }
+                            m_sendUdp.Send(remoteData.data, remoteData.data.Length);
+                        }
+                    }
+                }
             }
 
             foreach (RemoteInfo dataInfo in m_removedClientArr)
@@ -281,19 +304,6 @@ namespace TmUDP
             void thBroadcast(byte[] _data, IPEndPoint _remoteEP)
             {
                 m_thRecvList.Add(new RemoteData(_data, _remoteEP));
-                if (m_sendUdp.EnableBroadcast)
-                {
-                    m_sendUdp.Send(_data, _data.Length);
-                }
-                else
-                {
-                    foreach (RemoteInfo client in m_clientList)
-                    {
-                        //m_sendUdp.Send(_data, _data.Length, client, m_sendPort);
-                        m_sendUdp.Connect(client.remoteEP.Address, m_sendPort);
-                        m_sendUdp.Send(_data, _data.Length);
-                    }
-                }
             }
             // -- client only --
             void thUpdate(byte[] _data, IPEndPoint _remoteEP)

@@ -652,7 +652,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_client: {fileID: 0}
   m_targetTr: {fileID: 1643924642}
-  m_cameraPivotTr: {fileID: 0}
+  m_cameraPivotTr: {fileID: 2091551966}
   m_targetCamera: {fileID: 0}
   m_moveSped: {x: 180, y: 6, z: 5}
 --- !u!1 &572745921
