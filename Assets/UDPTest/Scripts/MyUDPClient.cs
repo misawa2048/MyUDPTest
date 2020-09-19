@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net; // IPEndPoint
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
@@ -107,7 +108,7 @@ public class MyUDPClient : TmUDP.TmUDPClient
         }
     }
 
-    public void OnReceiveData(byte[] _data)
+    public void OnReceiveData(byte[] _data, IPEndPoint _remoteEP)
     {
         string text = System.Text.Encoding.UTF8.GetString(_data);
         string[] dataArr = text.Split(',');

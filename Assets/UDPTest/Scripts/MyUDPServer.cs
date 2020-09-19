@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net; // IPEndPoint
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Networking;
@@ -169,7 +170,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         base.Update();
     }
 
-    public void OnReceiveData(byte[] _rawData)
+    public void OnReceiveData(byte[] _rawData, IPEndPoint _remoteEP)
     {
         string text = System.Text.Encoding.UTF8.GetString(_rawData);
         string[] dataArr = text.Split(',');
@@ -227,7 +228,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
                     {
                         string outStr = "{\"infoArray\":[" + jsonPartStr.Replace(',','%') + "]}";
                         outStr = dataArr[0] + "," + MyUDPServer.KWDEX_OBJARRAY + "," + outStr;
-                        this.SendData(System.Text.Encoding.UTF8.GetBytes(outStr));
+                        this.SendData(System.Text.Encoding.UTF8.GetBytes(outStr), _remoteEP);
                     }
                     else {
                         Debug.Log("Json is null. nothing to do.");

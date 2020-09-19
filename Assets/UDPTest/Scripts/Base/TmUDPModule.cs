@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace TmUDP
 {
-    [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[]> { }
+    [System.Serializable] public class ReceiveEvent : UnityEngine.Events.UnityEvent<byte[], IPEndPoint> { }
     [System.Serializable] public class NumChangeEvent : UnityEngine.Events.UnityEvent<string[]> { }
     [System.Serializable]
     public class RemoteInfo
@@ -21,7 +21,7 @@ namespace TmUDP
         public RemoteInfo(string _ipStr, IPEndPoint _remoteEP)
         {
             ipStr = _ipStr;
-            remoteEP = _remoteEP;
+            remoteEP = new IPEndPoint(_remoteEP.Address, _remoteEP.Port);
             m_AddressStr = _remoteEP.Address.ToString();
             m_AddressFamilyStr = _remoteEP.AddressFamily.ToString();
         }
@@ -48,8 +48,8 @@ namespace TmUDP
         public string myIP { get { return m_myIP; } }
         [SerializeField, ReadOnlyWhenPlaying] internal string m_host = "localhost"; // m_isServer && "" > bloadcast
         public string host { get { return m_host; } }
-        [SerializeField, ReadOnlyWhenPlaying] internal int m_sendPort = 8001;
-        [SerializeField, ReadOnlyWhenPlaying] internal int m_receivePort = 8003;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_sendPort = 7001;
+        [SerializeField, ReadOnlyWhenPlaying] internal int m_receivePort = 7003;
         public int sendPort { get { return m_sendPort; } }
         public int receivePort { get { return m_receivePort; } }
         [SerializeField, ReadOnlyWhenPlaying] internal int m_receiveTimeout = 1000;
@@ -123,7 +123,7 @@ namespace TmUDP
 
             foreach (RemoteData remoteData in m_recvArr)
             {
-                m_onReceiveEvnts.Invoke(remoteData.data);
+                m_onReceiveEvnts.Invoke(remoteData.data, remoteData.remoteEP);
                 if (m_isServer)
                 {
                     if (m_sendUdp.EnableBroadcast)
@@ -134,16 +134,16 @@ namespace TmUDP
                     {
                         foreach (RemoteInfo client in m_clientList)
                         {
-                            //m_sendUdp.Send(remoteData.data, remoteData.data.Length, client, m_sendPort);
                             try
                             {
-                                m_sendUdp.Connect(client.remoteEP.Address, m_sendPort);
+                                //m_sendUdp.Connect(client.remoteEP.Address, m_sendPort);
+                                m_sendUdp.Send(remoteData.data, remoteData.data.Length, client.remoteEP);
+                                Debug.Log("SendPort=" + client.remoteEP + (m_isServer ? "(S)" : "(C)"));
                             }
                             catch (System.Exception e)
                             {
                                 Debug.Log("UDPServer SendConnect error:" + e.ToString());
                             }
-                            m_sendUdp.Send(remoteData.data, remoteData.data.Length);
                         }
                     }
                 }
@@ -188,6 +188,7 @@ namespace TmUDP
             if (m_sendUdp == null)
             {
                 m_sendUdp = new UdpClient();
+                //m_sendUdp.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
                 if (m_isServer)
                 { //-- for server --
                     if ((m_host == "") || (m_host == IS_BROADCAST))
@@ -197,7 +198,7 @@ namespace TmUDP
                     }
                     else
                     {
-                        m_sendUdp.Connect(m_host, m_sendPort);
+                        //m_sendUdp.Connect(m_host, m_sendPort);
                     }
                     Debug.Log("UDPServerSend start. Broadcast=" + m_sendUdp.EnableBroadcast);
                 }
@@ -284,7 +285,7 @@ namespace TmUDP
                 {
                     if (!m_clientList.Any(v => v.ipStr.Equals(dataArr[0])))
                     {
-                        m_thAddedClientList.Add(new RemoteInfo(_text, _remoteEP));
+                        m_thAddedClientList.Add(new RemoteInfo(dataArr[0], _remoteEP));
                     }
                 }
 
@@ -317,10 +318,11 @@ namespace TmUDP
                 {
                     if (m_receiveUdp.Available > 0)
                     {
+                        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, 0);
                         try
                         {
-                            IPEndPoint remoteEP = null;
                             byte[] data = m_receiveUdp.Receive(ref remoteEP);
+                            remoteEP.Port = m_isServer ? m_sendPort : m_receivePort;
                             string text = System.Text.Encoding.UTF8.GetString(data);
                             thManageClient(text, remoteEP);
                             if (m_isServer)
@@ -336,6 +338,7 @@ namespace TmUDP
                         {
                             Debug.Log(e.ToString());
                         }
+                        Debug.Log("Rceiv" + remoteEP + (m_isServer ? "(S)" : "(C)"));
                     }
                 }
                 else
@@ -364,11 +367,17 @@ namespace TmUDP
         {
             this.SendData(System.Text.Encoding.UTF8.GetBytes(_dataStr));
         }
-        internal void SendData(byte[] _data)
+        internal void SendData(byte[] _data, IPEndPoint _remoteEP=null)
         {
+            if (m_isServer && _remoteEP == null)
+                Debug.Assert(false, "Server must set IPEndPoint");
+
             try
             {
-                m_sendUdp.Send(_data, _data.Length);
+                if(_remoteEP==null)
+                    m_sendUdp.Send(_data, _data.Length);
+                else
+                    m_sendUdp.Send(_data, _data.Length, _remoteEP);
             }
             catch (System.InvalidOperationException e)
             {
