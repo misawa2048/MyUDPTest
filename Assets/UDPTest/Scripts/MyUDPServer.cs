@@ -396,7 +396,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
             float.TryParse(_dataArr[index + 1], out _pos.x);
             float.TryParse(_dataArr[index + 2], out _pos.y);
             float.TryParse(_dataArr[index + 3], out _pos.z);
-            Debug.Log("Pos=" + _dataArr[index + 1] + "," + _dataArr[index + 2] + "," + _dataArr[index + 3]);
+            Debug.Log(_dataArr[0] + "Pos=" + _dataArr[index + 1] + "," + _dataArr[index + 2] + "," + _dataArr[index + 3]);
         }
         return ret;
     }
@@ -410,7 +410,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         { // rotY
             ret = true;
             float.TryParse(_dataArr[index + 1], out _angY);
-            Debug.Log("RotY=" + _dataArr[index + 1]);
+            Debug.Log(_dataArr[0] + "RotY=" + _dataArr[index + 1]);
         }
         return ret;
     }
@@ -427,7 +427,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
             float.TryParse(_dataArr[index + 2], out _rot.y);
             float.TryParse(_dataArr[index + 3], out _rot.z);
             float.TryParse(_dataArr[index + 4], out _rot.w);
-            Debug.Log("Quat=" + _rot.ToString());
+            Debug.Log(_dataArr[0]+"Quat=" + _rot.ToString());
         }
         return ret;
     }
@@ -454,7 +454,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
             float.TryParse(_dataArr[index + 8], out _rot.z);
             float.TryParse(_dataArr[index + 9], out _rot.w);
             _suffix = _dataArr[index + 10];
-            Debug.Log("Model=" + _objName + "_" + _count.ToString() + " " + _suffix);
+            Debug.Log(_dataArr[0] + "Model=" + _objName + "_" + _count.ToString() + " " + _suffix);
         }
         return ret;
     }
@@ -471,7 +471,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
             ret = true;
             _objName = _dataArr[index + 1];
             int.TryParse(_dataArr[index + 2], out _count);
-            Debug.Log("RemoveModel=" + _objName + "_" + _count.ToString());
+            Debug.Log(_dataArr[0] + "RemoveModel=" + _objName + "_" + _count.ToString());
         }
         return ret;
     }
@@ -501,7 +501,7 @@ public class MyUDPServer : TmUDP.TmUDPServer
         {
             ret = true;
             string jsonStr = _dataArr[index + 1].Replace('%', ',');
-            Debug.Log("jsonStr=" + jsonStr);
+            Debug.Log(_dataArr[0] + "jsonStr=" + jsonStr);
             MyAddedObjInfoArrayForJson tmpOut = JsonUtility.FromJson<MyAddedObjInfoArrayForJson>(jsonStr);
             _addedObjInfoArr = tmpOut.ToMyAddedObjInfoArray();
         }

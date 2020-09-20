@@ -16,14 +16,10 @@ namespace TmUDP
     {
         public string ipStr;
         public IPEndPoint remoteEP;
-        public string m_AddressStr;
-        public string m_AddressFamilyStr;
         public RemoteInfo(string _ipStr, IPEndPoint _remoteEP)
         {
             ipStr = _ipStr;
             remoteEP = new IPEndPoint(_remoteEP.Address, _remoteEP.Port);
-            m_AddressStr = _remoteEP.Address.ToString();
-            m_AddressFamilyStr = _remoteEP.AddressFamily.ToString();
         }
     }
     public class RemoteData
@@ -138,7 +134,6 @@ namespace TmUDP
                             {
                                 //m_sendUdp.Connect(client.remoteEP.Address, m_sendPort);
                                 m_sendUdp.Send(remoteData.data, remoteData.data.Length, client.remoteEP);
-                                Debug.Log("SendPort=" + client.remoteEP + (m_isServer ? "(S)" : "(C)"));
                             }
                             catch (System.Exception e)
                             {
@@ -322,7 +317,11 @@ namespace TmUDP
                         try
                         {
                             byte[] data = m_receiveUdp.Receive(ref remoteEP);
+                            Debug.Log(m_myIP+"==RCV:" + remoteEP.Address + "," + remoteEP.Port);
+
+                            //!!??
                             remoteEP.Port = m_isServer ? m_sendPort : m_receivePort;
+
                             string text = System.Text.Encoding.UTF8.GetString(data);
                             thManageClient(text, remoteEP);
                             if (m_isServer)
@@ -338,7 +337,6 @@ namespace TmUDP
                         {
                             Debug.Log(e.ToString());
                         }
-                        Debug.Log("Rceiv" + remoteEP + (m_isServer ? "(S)" : "(C)"));
                     }
                 }
                 else
