@@ -177,6 +177,17 @@ public class MyUDPServer : TmUDP.TmUDPServer
         if (dataArr.Length > 0)
         {
             MyClientInfo info = GetInfoByIP(dataArr[0], m_plInfoList);
+            if (info == null)
+            { // m_clientListには残っているがm_plInfoListにはない場合(クライアントリセット時等)
+                foreach (TmUDP.RemoteInfo tmpInfo in m_clientList)
+                {
+                    if(tmpInfo.ipStr.Equals(dataArr[0])){
+                        info = CreateClientMarker(dataArr, m_clientMarkerPrefab, transform.parent);
+                        m_plInfoList.Add(info);
+                        break;
+                    }
+                }
+            }
             if (info != null)
             {
                 Vector3 pos = Vector3.zero;
