@@ -3,9 +3,9 @@
 UDP send and receive module  
 HOW TO USE  
 - Build server  
-  ![build server](img/buildServer.png)  
+  ![build server](img/buildServer2.png)  
 - Build Client  
-  ![build client](img/buildClient.png)  
+  ![build client](img/buildClient2.png)  
 - Run server  
   The server port can be changed from the command line  
   >MyUDPTest.exe -sendPort=8001 -receivePort=8003  
