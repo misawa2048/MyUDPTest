@@ -296,16 +296,6 @@ namespace TmUDP
                     }
                 }
             }
-            // -- server only --
-            void thBroadcast(byte[] _data, IPEndPoint _remoteEP)
-            {
-                m_thRecvList.Add(new RemoteData(_data, _remoteEP));
-            }
-            // -- client only --
-            void thUpdate(byte[] _data, IPEndPoint _remoteEP)
-            {
-                m_thRecvList.Add(new RemoteData(_data, _remoteEP));
-            }
 
             while (true)
             {
@@ -324,14 +314,7 @@ namespace TmUDP
 
                             string text = System.Text.Encoding.UTF8.GetString(data);
                             thManageClient(text, remoteEP);
-                            if (m_isServer)
-                            { //-- for server --
-                                thBroadcast(data, remoteEP);
-                            }
-                            else
-                            { // -- for client --
-                                thUpdate(data, remoteEP);
-                            }
+                            m_thRecvList.Add(new RemoteData(data, remoteEP));
                         }
                         catch (SocketException e)
                         {
