@@ -213,8 +213,15 @@ namespace TmUDP
 
             if (m_receiveUdp == null)
             {
-                m_receiveUdp = new UdpClient(m_receivePort);
-                m_receiveUdp.Client.ReceiveTimeout = m_receiveTimeout;
+                if(m_receivePort!= m_sendPort)
+                {
+                    m_receiveUdp = new UdpClient(m_receivePort);
+                    m_receiveUdp.Client.ReceiveTimeout = m_receiveTimeout;
+                }
+                else
+                {
+                    m_receiveUdp = m_sendUdp;
+                }
                 if (m_isServer)
                 { //-- for server --
                     Debug.Log("UDPServerReceive start.");
